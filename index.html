@@ -30,7 +30,7 @@ table{width:100%;border-collapse:collapse;margin-top:7px}th,td{text-align:left;p
 
 <section id="response" class="section"><div class="grid">
 <div class="panel"><h2>Response-Time Data</h2><p class="sub">X = traffic (visitors/min) · Y = response time (ms)</p><div class="actions"><button class="btn primary" id="loadResponse">Load Example</button><button class="btn ghost" id="addResponse">+ Add Row</button><button class="btn danger" id="clearResponse">Clear</button></div><table><thead><tr><th>Traffic (X)</th><th>Response (Y)</th><th></th></tr></thead><tbody id="responseBody"></tbody></table><div class="error" id="responseError"></div><div class="actions"><button class="btn primary" id="analyzeResponse">Analyze Response Time</button></div></div>
-<div class="panel"><h2>Response-Time Analysis</h2><p class="sub">Covariance + linear fitting for the practical application.</p><div class="metrics" id="responseMetrics"></div><div class="formula" id="responseFormula">Analyze the dataset to see the calculation.</div><div class="two" style="margin-top:12px"><div class="field"><label>Future Traffic<input id="futureTraffic" type="number" min="0" step="1" value="600"></label><div class="actions"><button class="btn secondary" id="predictResponse">Predict Response</button></div></div><div class="result"><small>Estimated response time</small><strong class="big" id="responsePrediction">—</strong></div></div><div class="chart-wrap"><p class="chart-title">Traffic vs Response Time</p><canvas id="responseChart" class="chart" width="900" height="320"></canvas></div><h3>Conclusion</h3><div class="result" id="responseConclusion">Analyze the dataset to generate a conclusion.</div></div>
+<div class="panel"><h2>Response-Time Analysis</h2><p class="sub">Covariance + linear fitting for the practical application.</p><div class="metrics" id="responseMetrics"></div><div class="formula" id="responseFormula">Analyze the dataset to see the calculation.</div><div class="two" style="margin-top:12px"><div class="field"><label>Future Traffic<input id="futureTraffic" type="number" min="0" step="1" placeholder="e.g. 600"></label><div class="actions"><button class="btn secondary" id="predictResponse">Predict Response</button></div></div><div class="result"><small>Estimated response time</small><strong class="big" id="responsePrediction">—</strong></div></div><div class="chart-wrap"><p class="chart-title">Traffic vs Response Time</p><canvas id="responseChart" class="chart" width="900" height="320"></canvas></div><h3>Conclusion</h3><div class="result" id="responseConclusion">Analyze the dataset to generate a conclusion.</div></div>
 </div></section>
 
 <section id="compare" class="section"><div class="panel"><h2>Model Comparison</h2><p class="sub">Compare the fitted linear and exponential equations using the current traffic dataset.</p><div id="compareTable" style="margin-top:12px"></div><div class="notice" id="compareNote" style="margin-top:12px">Analyze traffic data first.</div></div></section>
@@ -52,19 +52,89 @@ table{width:100%;border-collapse:collapse;margin-top:7px}th,td{text-align:left;p
   function renderTable(bodyId,rows){const body=$(bodyId);body.innerHTML='';rows.forEach((r,i)=>{const tr=document.createElement('tr');tr.innerHTML='<td><input class="cell" type="number" step="any" value="'+r[0]+'"></td><td><input class="cell" type="number" step="any" value="'+r[1]+'"></td><td><button type="button" class="btn danger remove">×</button></td>';tr.querySelector('.remove').addEventListener('click',()=>tr.remove());body.appendChild(tr);});}
   function readTable(bodyId){return [...$(bodyId).querySelectorAll('tr')].map(tr=>[...tr.querySelectorAll('input')].map(i=>Number(i.value))).filter(r=>r.every(Number.isFinite));}
   function setMetrics(id,items){$(id).innerHTML=items.map(([l,v])=>'<div class="metric"><small>'+l+'</small><strong>'+v+'</strong></div>').join('');}
-  function drawChart(canvasId,rows,fit,type){const canvas=$(canvasId),ctx=canvas.getContext('2d'),w=canvas.width,h=canvas.height,p={l:58,r:22,t:20,b:44};ctx.clearRect(0,0,w,h);ctx.fillStyle='#fff';ctx.fillRect(0,0,w,h);if(rows.length<2)return;let minX=Math.min(...rows.map(r=>r[0])),maxX=Math.max(...rows.map(r=>r[0])),minY=Math.min(...rows.map(r=>r[1])),maxY=Math.max(...rows.map(r=>r[1]));if(fit){for(let i=0;i<=60;i++){const x=minX+(maxX-minX)*i/60,y=type==='linear'?fit.a+fit.b*x:fit.a*Math.pow(fit.b,x);if(Number.isFinite(y)){minY=Math.min(minY,y);maxY=Math.max(maxY,y);}}}const xspan=maxX-minX||1,yspan=maxY-minY||1,sx=x=>p.l+(x-minX)/xspan*(w-p.l-p.r),sy=y=>h-p.b-(y-minY)/yspan*(h-p.t-p.b);ctx.strokeStyle='#e5e7eb';ctx.lineWidth=1;for(let i=0;i<6;i++){const yy=p.t+i*(h-p.t-p.b)/5;ctx.beginPath();ctx.moveTo(p.l,yy);ctx.lineTo(w-p.r,yy);ctx.stroke();const xx=p.l+i*(w-p.l-p.r)/5;ctx.beginPath();ctx.moveTo(xx,p.t);ctx.lineTo(xx,h-p.b);ctx.stroke();}ctx.fillStyle='#667085';ctx.font='12px Segoe UI';ctx.fillText(fmt(minX),p.l,h-18);ctx.fillText(fmt(maxX),w-p.r-24,h-18);ctx.fillText(fmt(maxY),6,p.t+5);ctx.fillText(fmt(minY),6,h-p.b);ctx.strokeStyle='#94a3b8';ctx.lineWidth=1.5;ctx.beginPath();rows.forEach((r,i)=>{const px=sx(r[0]),py=sy(r[1]);i?ctx.lineTo(px,py):ctx.moveTo(px,py)});ctx.stroke();ctx.fillStyle='#2563eb';rows.forEach(r=>{ctx.beginPath();ctx.arc(sx(r[0]),sy(r[1]),4.5,0,Math.PI*2);ctx.fill();});if(fit){ctx.strokeStyle='#ef4444';ctx.lineWidth=2;ctx.beginPath();for(let i=0;i<=100;i++){const x=minX+xspan*i/100,y=type==='linear'?fit.a+fit.b*x:fit.a*Math.pow(fit.b,x),px=sx(x),py=sy(y);if(i===0)ctx.moveTo(px,py);else ctx.lineTo(px,py);}ctx.stroke();}}
+  function drawChart(canvasId,rows,fit,type,prediction=null){
+    const canvas=$(canvasId),ctx=canvas.getContext('2d'),w=canvas.width,h=canvas.height,p={l:58,r:24,t:24,b:48};
+    ctx.clearRect(0,0,w,h);ctx.fillStyle='#fff';ctx.fillRect(0,0,w,h);
+    if(rows.length<2)return;
+    let minX=Math.min(...rows.map(r=>r[0])),maxX=Math.max(...rows.map(r=>r[0])),minY=Math.min(...rows.map(r=>r[1])),maxY=Math.max(...rows.map(r=>r[1]));
+    if(prediction&&Number.isFinite(prediction.x)&&Number.isFinite(prediction.y)){
+      minX=Math.min(minX,prediction.x);maxX=Math.max(maxX,prediction.x);minY=Math.min(minY,prediction.y);maxY=Math.max(maxY,prediction.y);
+    }
+    if(fit){
+      const span=maxX-minX||1;
+      for(let i=0;i<=80;i++){
+        const x=minX+span*i/80;
+        const y=type==='linear'?fit.a+fit.b*x:fit.a*Math.pow(fit.b,x);
+        if(Number.isFinite(y)){minY=Math.min(minY,y);maxY=Math.max(maxY,y);}
+      }
+    }
+    const xspan=maxX-minX||1,yspan=maxY-minY||1,sx=x=>p.l+(x-minX)/xspan*(w-p.l-p.r),sy=y=>h-p.b-(y-minY)/yspan*(h-p.t-p.b);
+    ctx.strokeStyle='#e5e7eb';ctx.lineWidth=1;
+    for(let i=0;i<6;i++){
+      const yy=p.t+i*(h-p.t-p.b)/5;ctx.beginPath();ctx.moveTo(p.l,yy);ctx.lineTo(w-p.r,yy);ctx.stroke();
+      const xx=p.l+i*(w-p.l-p.r)/5;ctx.beginPath();ctx.moveTo(xx,p.t);ctx.lineTo(xx,h-p.b);ctx.stroke();
+    }
+    ctx.fillStyle='#667085';ctx.font='12px Segoe UI';
+    ctx.fillText(fmt(minX),p.l,h-18);ctx.fillText(fmt(maxX),w-p.r-28,h-18);ctx.fillText(fmt(maxY),7,p.t+5);ctx.fillText(fmt(minY),7,h-p.b);
+    ctx.strokeStyle='#94a3b8';ctx.lineWidth=1.5;ctx.beginPath();rows.forEach((r,i)=>{const px=sx(r[0]),py=sy(r[1]);i?ctx.lineTo(px,py):ctx.moveTo(px,py)});ctx.stroke();
+    ctx.fillStyle='#2563eb';rows.forEach(r=>{ctx.beginPath();ctx.arc(sx(r[0]),sy(r[1]),4.5,0,Math.PI*2);ctx.fill();});
+    if(fit){
+      ctx.strokeStyle='#ef4444';ctx.lineWidth=2;ctx.beginPath();let started=false;
+      for(let i=0;i<=120;i++){
+        const x=minX+(maxX-minX)*i/120,y=type==='linear'?fit.a+fit.b*x:fit.a*Math.pow(fit.b,x),px=sx(x),py=sy(y);
+        if(!Number.isFinite(py))continue;
+        if(!started){ctx.moveTo(px,py);started=true;}else{ctx.lineTo(px,py);}
+      }
+      ctx.stroke();
+    }
+    if(prediction&&Number.isFinite(prediction.x)&&Number.isFinite(prediction.y)){
+      const px=sx(prediction.x),py=sy(prediction.y);
+      ctx.save();ctx.setLineDash([6,5]);ctx.strokeStyle='#111827';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(px,py);ctx.lineTo(px,h-p.b);ctx.stroke();ctx.restore();
+      ctx.fillStyle='#f97316';ctx.beginPath();ctx.arc(px,py,7,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.stroke();
+      ctx.fillStyle='#111827';ctx.font='700 12px Segoe UI';ctx.fillText('Prediction',Math.min(px+9,w-90),Math.max(py-10,p.t+14));
+    }
+  }
+
   function analyzeTraffic(){const rows=finiteRows(readTable('trafficBody'));if(rows.length<2){$('trafficError').textContent='Enter at least two valid data points.';return false;}$('trafficError').textContent='';state.traffic=rows;const cov=covariance(rows),lin=linearFit(rows),exp=exponentialFit(rows);state.trafficAnalysis={cov,lin,exp};setMetrics('trafficMetrics',[['Covariance',fmt(cov)],['Relationship',rel(cov)],['Linear slope b',lin?fmt(lin.b):'—'],['Data points',rows.length]]);const mx=mean(rows.map(r=>r[0])),my=mean(rows.map(r=>r[1]));$('trafficCov').textContent='X̄ = '+fmt(mx)+'\nȲ = '+fmt(my)+'\nCov(X,Y) = '+fmt(cov)+'\nInterpretation: '+rel(cov)+' covariance';$('trafficConclusion').innerHTML='<strong>'+rel(cov)+' relationship.</strong> The entered dataset shows how website traffic changes with time. Covariance describes the direction of joint movement; curve fitting is used for future estimation.';updateTrafficPrediction();drawTraffic();updateCompare();updateDashboard();return true;}
-  function updateTrafficPrediction(){if(!state.trafficAnalysis)return;const x=Number($('futureDay').value);const type=$('trafficModel').value;const fit=type==='linear'?state.trafficAnalysis.lin:state.trafficAnalysis.exp;if(!Number.isFinite(x)||!fit){$('trafficPrediction').textContent='—';$('trafficEquation').textContent='Insufficient data for this model.';return;}const y=type==='linear'?fit.a+fit.b*x:fit.a*Math.pow(fit.b,x);$('trafficPrediction').textContent=fmt(y)+' visitors';$('trafficEquation').textContent=type==='linear'?'y = '+fmt(fit.a)+' + '+fmt(fit.b)+'x':'y = '+fmt(fit.a)+' × '+fmt(fit.b)+'ˣ';drawTraffic();updateCompare();}
-  function drawTraffic(){if(!state.trafficAnalysis)return;const type=$('trafficModel').value,fit=type==='linear'?state.trafficAnalysis.lin:state.trafficAnalysis.exp;drawChart('trafficChart',state.traffic,fit,type);}
-  function analyzeResponse(){const rows=finiteRows(readTable('responseBody'));if(rows.length<2){$('responseError').textContent='Enter at least two valid data points.';return false;}$('responseError').textContent='';state.response=rows;const cov=covariance(rows),lin=linearFit(rows);state.responseAnalysis={cov,lin};setMetrics('responseMetrics',[['Covariance',fmt(cov)],['Relationship',rel(cov)],['Slope b',lin?fmt(lin.b):'—'],['Data points',rows.length]]);$('responseFormula').textContent='X̄ = '+fmt(mean(rows.map(r=>r[0])))+'\nȲ = '+fmt(mean(rows.map(r=>r[1])))+'\nCov(X,Y) = '+fmt(cov)+'\nLinear model: '+(lin?'y = '+fmt(lin.a)+' + '+fmt(lin.b)+'x':'Insufficient variation');$('responseConclusion').innerHTML='<strong>'+rel(cov)+' relationship.</strong> In this sample, traffic and response time tend to '+(cov>0?'increase together.':cov<0?'move in opposite directions.':'show little linear joint movement.');drawChart('responseChart',state.response,lin,'linear');updateDashboard();return true;}
-  function predictResponse(){if(!state.responseAnalysis&& !analyzeResponse())return;const x=Number($('futureTraffic').value),fit=state.responseAnalysis?.lin;if(!fit||!Number.isFinite(x)){$('responsePrediction').textContent='—';return;}const y=fit.a+fit.b*x;$('responsePrediction').textContent=fmt(y)+' ms';}
+  function updateTrafficPrediction(){
+    if(!state.trafficAnalysis)return;
+    const raw=$('futureDay').value.trim();
+    const x=raw===''?NaN:Number(raw);
+    const type=$('trafficModel').value;
+    const fit=type==='linear'?state.trafficAnalysis.lin:state.trafficAnalysis.exp;
+    if(!Number.isFinite(x)||!fit){$('trafficPrediction').textContent='—';$('trafficEquation').textContent=fit?'Enter a future day to predict.':'Insufficient data for this model.';drawTraffic(null);updateCompare();return;}
+    const y=type==='linear'?fit.a+fit.b*x:fit.a*Math.pow(fit.b,x);
+    if(!Number.isFinite(y)){$('trafficPrediction').textContent='—';$('trafficEquation').textContent='Prediction is outside a usable numeric range.';drawTraffic(null);updateCompare();return;}
+    $('trafficPrediction').textContent=fmt(y)+' visitors';
+    $('trafficEquation').textContent=type==='linear'?'y = '+fmt(fit.a)+' + '+fmt(fit.b)+'x':'y = '+fmt(fit.a)+' × '+fmt(fit.b)+'ˣ';
+    drawTraffic({x,y});updateCompare();
+  }
+  function drawTraffic(prediction=null){
+    if(!state.trafficAnalysis)return;
+    const type=$('trafficModel').value,fit=type==='linear'?state.trafficAnalysis.lin:state.trafficAnalysis.exp;
+    drawChart('trafficChart',state.traffic,fit,type,prediction);
+  }
+
+  function analyzeResponse(){const rows=finiteRows(readTable('responseBody'));if(rows.length<2){$('responseError').textContent='Enter at least two valid data points.';return false;}$('responseError').textContent='';state.response=rows;const cov=covariance(rows),lin=linearFit(rows);state.responseAnalysis={cov,lin};setMetrics('responseMetrics',[['Covariance',fmt(cov)],['Relationship',rel(cov)],['Slope b',lin?fmt(lin.b):'—'],['Data points',rows.length]]);$('responseFormula').textContent='X̄ = '+fmt(mean(rows.map(r=>r[0])))+'\nȲ = '+fmt(mean(rows.map(r=>r[1])))+'\nCov(X,Y) = '+fmt(cov)+'\nLinear model: '+(lin?'y = '+fmt(lin.a)+' + '+fmt(lin.b)+'x':'Insufficient variation');$('responseConclusion').innerHTML='<strong>'+rel(cov)+' relationship.</strong> In this sample, traffic and response time tend to '+(cov>0?'increase together.':cov<0?'move in opposite directions.':'show little linear joint movement.');drawChart('responseChart',state.response,lin,'linear',null);updateDashboard();return true;}
+  function predictResponse(){
+    if(!state.responseAnalysis && !analyzeResponse())return;
+    const raw=$('futureTraffic').value.trim();
+    const x=raw===''?NaN:Number(raw),fit=state.responseAnalysis?.lin;
+    if(!fit||!Number.isFinite(x)){$('responsePrediction').textContent='—';drawChart('responseChart',state.response,fit,'linear',null);return;}
+    const y=fit.a+fit.b*x;
+    if(!Number.isFinite(y)){$('responsePrediction').textContent='—';drawChart('responseChart',state.response,fit,'linear',null);return;}
+    $('responsePrediction').textContent=fmt(y)+' ms';
+    $('responseConclusion').innerHTML='<strong>'+rel(state.responseAnalysis.cov)+' relationship.</strong> In this sample, traffic and response time tend to '+(state.responseAnalysis.cov>0?'increase together.':state.responseAnalysis.cov<0?'move in opposite directions.':'show little linear joint movement.')+' <span class="muted">Predicted point: ('+fmt(x)+', '+fmt(y)+' ms).</span>';
+    drawChart('responseChart',state.response,fit,'linear',{x,y});
+  }
+
   function updateCompare(){const a=state.trafficAnalysis;if(!a){$('compareTable').innerHTML='';$('compareNote').textContent='Analyze traffic data first.';return;}const x=Number($('futureDay').value)||10;let rows='';if(a.lin)rows+='<tr><td>Linear</td><td>y = '+fmt(a.lin.a)+' + '+fmt(a.lin.b)+'x</td><td>'+fmt(a.lin.a+a.lin.b*x)+'</td></tr>';if(a.exp)rows+='<tr><td>Exponential</td><td>y = '+fmt(a.exp.a)+' × '+fmt(a.exp.b)+'ˣ</td><td>'+fmt(a.exp.a*Math.pow(a.exp.b,x))+'</td></tr>';$('compareTable').innerHTML='<table><thead><tr><th>Model</th><th>Fitted equation</th><th>At Day '+fmt(x)+'</th></tr></thead><tbody>'+rows+'</tbody></table>';$('compareNote').textContent='Both models are computed from the current historical dataset. Compare the fitted curves and equations against the observed points.';}
   function updateDashboard(){setMetrics('dashMetrics',[['Traffic data points',state.traffic.length],['Traffic relationship',state.trafficAnalysis?rel(state.trafficAnalysis.cov):'Not analyzed'],['Traffic model',state.trafficAnalysis?($('trafficModel').value==='linear'?'Linear':'Exponential'):'—'],['Response relationship',state.responseAnalysis?rel(state.responseAnalysis.cov):'Not analyzed']]);}
   function loadTraffic(){state.traffic=trafficExample.map(r=>r.slice());renderTable('trafficBody',state.traffic);analyzeTraffic();}
-  function loadResponse(){state.response=responseExample.map(r=>r.slice());renderTable('responseBody',state.response);analyzeResponse();predictResponse();}
+  function loadResponse(){state.response=responseExample.map(r=>r.slice());$('futureTraffic').value='';renderTable('responseBody',state.response);analyzeResponse();$('responsePrediction').textContent='—';}
   $('tabs').addEventListener('click',e=>{const b=e.target.closest('button[data-section]');if(!b)return;document.querySelectorAll('#tabs button').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));$(b.dataset.section).classList.add('active');});
-  $('loadTraffic').addEventListener('click',loadTraffic);$('addTraffic').addEventListener('click',()=>addBlank('trafficBody'));$('clearTraffic').addEventListener('click',()=>{$('trafficBody').innerHTML='';state.trafficAnalysis=null;$('trafficPrediction').textContent='—';$('trafficConclusion').textContent='Analyze the dataset to generate a conclusion.';updateDashboard();});$('analyzeTraffic').addEventListener('click',()=>{if(analyzeTraffic())predictTraffic();});$('predictTraffic').addEventListener('click',predictTraffic);$('futureDay').addEventListener('input',predictTraffic);$('trafficModel').addEventListener('change',predictTraffic);
-  $('loadResponse').addEventListener('click',loadResponse);$('addResponse').addEventListener('click',()=>addBlank('responseBody'));$('clearResponse').addEventListener('click',()=>{$('responseBody').innerHTML='';state.responseAnalysis=null;$('responsePrediction').textContent='—';$('responseConclusion').textContent='Analyze the dataset to generate a conclusion.';updateDashboard();});$('analyzeResponse').addEventListener('click',()=>{if(analyzeResponse())predictResponse();});$('predictResponse').addEventListener('click',predictResponse);$('futureTraffic').addEventListener('input',predictResponse);
+  $('loadTraffic').addEventListener('click',loadTraffic);$('addTraffic').addEventListener('click',()=>addBlank('trafficBody'));$('clearTraffic').addEventListener('click',()=>{$('trafficBody').innerHTML='';state.trafficAnalysis=null;$('trafficMetrics').innerHTML='';$('trafficCov').textContent='Analyze the dataset to see the calculation.';$('trafficPrediction').textContent='—';$('trafficEquation').textContent='—';$('trafficConclusion').textContent='Analyze the dataset to generate a conclusion.';drawChart('trafficChart',[],null,'linear',null);updateDashboard();updateCompare();});$('analyzeTraffic').addEventListener('click',()=>{if(analyzeTraffic())predictTraffic();});$('predictTraffic').addEventListener('click',predictTraffic);$('futureDay').addEventListener('input',predictTraffic);$('trafficModel').addEventListener('change',predictTraffic);
+  $('loadResponse').addEventListener('click',loadResponse);$('addResponse').addEventListener('click',()=>addBlank('responseBody'));$('clearResponse').addEventListener('click',()=>{$('responseBody').innerHTML='';state.responseAnalysis=null;$('futureTraffic').value='';$('responseMetrics').innerHTML='';$('responseFormula').textContent='Analyze the dataset to see the calculation.';$('responsePrediction').textContent='—';$('responseConclusion').textContent='Analyze the dataset to generate a conclusion.';drawChart('responseChart',[],null,'linear',null);updateDashboard();});$('analyzeResponse').addEventListener('click',()=>{if(analyzeResponse())predictResponse();});$('predictResponse').addEventListener('click',predictResponse);$('futureTraffic').addEventListener('input',predictResponse);
   function addBlank(bodyId){const body=$(bodyId),tr=document.createElement('tr'),i=body.children.length+1;tr.innerHTML='<td><input class="cell" type="number" step="any" value="'+i+'"></td><td><input class="cell" type="number" step="any" value=""></td><td><button type="button" class="btn danger remove">×</button></td>';tr.querySelector('.remove').addEventListener('click',()=>tr.remove());body.appendChild(tr);}
   function predictTraffic(){if(!state.trafficAnalysis&& !analyzeTraffic())return;updateTrafficPrediction();}
   renderTable('trafficBody',state.traffic);renderTable('responseBody',state.response);loadTraffic();loadResponse();
