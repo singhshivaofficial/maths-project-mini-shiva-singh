@@ -3,175 +3,673 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Website Traffic Prediction | MCE Mini Project</title>
+<title>Website Response Time Distribution Analysis</title>
 <style>
-:root{--panel:#fff;--text:#142033;--muted:#667085;--border:#e4e7ec;--accent:#2563eb;--teal:#0f766e;--danger:#b42318;--orange:#f97316;--red:#ef4444;--shadow:0 12px 30px rgba(16,24,40,.08)}
+:root{
+  --bg:#f4f7fb; --panel:#ffffff; --ink:#13233a; --muted:#64748b;
+  --line:#e2e8f0; --blue:#2563eb; --blue-soft:#eff6ff;
+  --teal:#0f766e; --teal-soft:#ecfdf5; --orange:#f97316;
+  --orange-soft:#fff7ed; --navy:#0f172a; --danger:#b42318;
+  --shadow:0 16px 40px rgba(15,23,42,.08); --radius:18px;
+}
 *{box-sizing:border-box}
-body{margin:0;font-family:Inter,Segoe UI,system-ui,sans-serif;background:linear-gradient(135deg,#f8fafc,#eef4ff);color:var(--text)}
-header{max-width:1200px;margin:auto;padding:26px 20px 12px}.brand{display:flex;align-items:center;gap:14px}.logo{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;color:#fff;font-weight:900;font-size:22px;background:linear-gradient(135deg,#2563eb,#0f766e);box-shadow:var(--shadow)}h1{margin:0;font-size:28px}header p{margin:5px 0;color:var(--muted)}
-nav{max-width:1200px;margin:auto;padding:0 20px 18px;display:flex;gap:8px;flex-wrap:wrap}nav button{border:1px solid var(--border);background:#fff;color:#344054;padding:10px 14px;border-radius:10px;font-weight:700;cursor:pointer}nav button.active{background:#111827;color:#fff;border-color:#111827}
-main{max-width:1200px;margin:auto;padding:0 20px 40px}.section{display:none}.section.active{display:block}.grid{display:grid;grid-template-columns:1fr 1.35fr;gap:18px}.panel{background:var(--panel);border:1px solid var(--border);border-radius:18px;padding:18px;box-shadow:var(--shadow)}.panel h2{margin:0 0 5px;font-size:19px}.panel h3{margin:18px 0 9px;font-size:15px}.sub{margin:0;color:var(--muted);font-size:13px}.actions{display:flex;gap:8px;flex-wrap:wrap;margin:13px 0}.btn{border:0;border-radius:9px;padding:10px 13px;font-weight:750;cursor:pointer}.primary{background:var(--accent);color:#fff}.secondary{background:#eef2ff;color:#1d4ed8}.ghost{background:#fff;border:1px solid var(--border);color:#344054}.danger{background:#fef3f2;color:var(--danger)}
-.controls{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}.field label{font-size:12px;color:var(--muted);font-weight:750;display:block}.field input,.field select{width:100%;padding:10px 11px;margin-top:5px;border:1px solid #d0d5dd;border-radius:9px;font-size:14px}
-table{width:100%;border-collapse:collapse;margin-top:7px}th,td{text-align:left;padding:8px;border-bottom:1px solid #eef0f3;font-size:13px}th{font-size:12px;color:var(--muted)}.cell{width:100%;padding:7px;border:1px solid #d0d5dd;border-radius:7px}
-.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0}.metric{background:#f8fafc;border:1px solid #edf0f4;border-radius:12px;padding:12px}.metric small{display:block;color:var(--muted)}.metric strong{display:block;margin-top:4px;font-size:20px}
-.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}.formula{background:#0f172a;color:#e2e8f0;border-radius:12px;padding:13px;font:13px/1.55 ui-monospace,SFMono-Regular,Consolas,monospace;white-space:pre-wrap}.result{background:#f8fbff;border:1px solid #dbeafe;border-left:4px solid var(--accent);padding:12px;border-radius:10px}.result strong.big{font-size:24px;display:block;margin-top:4px}.notice{background:#fffbeb;border:1px solid #fde68a;color:#92400e;padding:11px 12px;border-radius:10px;font-size:13px}.success{background:#ecfdf3;border-color:#abefc6;color:#067647}.recommend{background:linear-gradient(135deg,#f0fdf9,#f7fbff);border:1px solid #b7e5d7;border-left:4px solid var(--teal);padding:14px;border-radius:12px}.recommend strong{display:block;font-size:16px;margin-bottom:4px}.warning{background:#fff7ed;border-color:#fed7aa;color:#9a3412}
-.chart-wrap{margin-top:12px}.chart-title{font-weight:800;margin:0 0 8px}.chart{width:100%;height:320px;border:1px solid #eef0f3;border-radius:12px;background:#fff;display:block}.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin:8px 0}.legend span{display:flex;align-items:center;gap:6px}.swatch{width:22px;height:3px;border-radius:3px;display:inline-block}.dot{width:9px;height:9px;border-radius:50%;display:inline-block}.blue{background:#2563eb}.grey{background:#94a3b8}.red{background:#ef4444}.orange{background:#f97316}.teal{background:#0f766e}
-.error{color:var(--danger);font-size:13px;margin-top:8px;min-height:18px}.muted{color:var(--muted)}
-.backend-btn{margin-left:auto;background:#111827;color:#fff;border:0;border-radius:9px;padding:9px 12px;font-weight:750;cursor:pointer}.panel-head{display:flex;gap:10px;align-items:center;justify-content:space-between}.panel-head .sub{flex:1}
-.modal-backdrop{display:none;position:fixed;inset:0;background:rgba(15,23,42,.58);z-index:1000;padding:22px;overflow:auto}.modal-backdrop.open{display:flex;align-items:flex-start;justify-content:center}.modal{width:min(900px,100%);background:#fff;border-radius:18px;box-shadow:0 24px 70px rgba(15,23,42,.25);overflow:hidden}.modal-header{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:16px 18px;border-bottom:1px solid var(--border);position:sticky;top:0;background:#fff}.modal-header h2{margin:0;font-size:18px}.close-btn{border:1px solid var(--border);background:#fff;border-radius:8px;padding:7px 10px;cursor:pointer;font-weight:700}.modal-body{padding:18px}.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.detail-card{border:1px solid var(--border);border-radius:12px;padding:12px;background:#fbfcfe}.detail-card h3{margin:0 0 8px;font-size:14px}.detail-card p{margin:6px 0;font-size:13px;line-height:1.55}.step{border-left:3px solid var(--accent);padding:9px 12px;background:#f8fbff;border-radius:8px;margin:9px 0}.step code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px;white-space:pre-wrap}.detail-note{font-size:12px;color:var(--muted);margin-top:10px}
-@media(max-width:950px){.detail-grid{grid-template-columns:1fr}}
-footer{text-align:center;color:#98a2b3;font-size:12px;padding:0 20px 28px}
-.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}.score{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
-@media(max-width:950px){.grid,.two,.compare-grid{grid-template-columns:1fr}.metrics{grid-template-columns:1fr 1fr}}@media(max-width:560px){.controls{grid-template-columns:1fr}.metrics{grid-template-columns:1fr 1fr}h1{font-size:22px}}
+html,body{margin:0;padding:0}
+body{
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  color:var(--ink);
+  background:
+    radial-gradient(circle at 10% 0%,rgba(37,99,235,.08),transparent 28%),
+    radial-gradient(circle at 90% 10%,rgba(15,118,110,.08),transparent 26%),
+    linear-gradient(180deg,#f8fafc,var(--bg));
+  min-height:100vh;
+}
+header{
+  max-width:1240px;margin:0 auto;padding:26px 22px 14px;
+}
+.brand{display:flex;gap:14px;align-items:center}
+.logo{
+  width:48px;height:48px;border-radius:14px;display:grid;place-items:center;
+  color:#fff;font-size:22px;font-weight:900;
+  background:linear-gradient(135deg,var(--blue),var(--teal));
+  box-shadow:0 10px 24px rgba(37,99,235,.22);
+}
+h1{margin:0;font-size:29px;letter-spacing:-.03em}
+.header-sub{margin:5px 0 0;color:var(--muted);font-size:14px}
+.nav{
+  max-width:1240px;margin:0 auto;padding:0 22px 18px;
+  display:flex;gap:8px;flex-wrap:wrap;
+}
+.nav button{
+  border:1px solid var(--line);background:#fff;color:#334155;
+  padding:10px 15px;border-radius:11px;font-weight:750;cursor:pointer;
+  transition:.2s ease;
+}
+.nav button:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(15,23,42,.06)}
+.nav button.active{background:var(--navy);border-color:var(--navy);color:#fff}
+main{max-width:1240px;margin:0 auto;padding:0 22px 42px}
+.page{display:none}.page.active{display:block}
+.panel{
+  background:rgba(255,255,255,.96);border:1px solid var(--line);
+  border-radius:var(--radius);box-shadow:var(--shadow);padding:19px;
+}
+.panel h2{margin:0 0 5px;font-size:20px;letter-spacing:-.02em}
+.panel h3{margin:17px 0 9px;font-size:16px}
+.sub{margin:0;color:var(--muted);font-size:13px}
+.grid{display:grid;grid-template-columns:1.02fr 1.35fr;gap:18px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin:14px 0}
+.stat{
+  border:1px solid var(--line);background:#f8fafc;border-radius:13px;padding:13px;
+}
+.stat small{display:block;color:var(--muted);font-size:12px}
+.stat strong{display:block;margin-top:5px;font-size:21px}
+.controls{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:12px}
+.field label{display:block;color:var(--muted);font-size:12px;font-weight:800}
+.field input,.field select{
+  width:100%;margin-top:5px;padding:10px 11px;border-radius:10px;
+  border:1px solid #cbd5e1;background:#fff;color:var(--ink);font-size:14px;
+}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin:13px 0}
+.btn{
+  border:0;border-radius:10px;padding:10px 13px;font-weight:800;cursor:pointer;
+}
+.primary{background:var(--blue);color:#fff}
+.teal{background:var(--teal);color:#fff}
+.secondary{background:var(--blue-soft);color:#1d4ed8}
+.ghost{background:#fff;color:#334155;border:1px solid var(--line)}
+.warn{background:var(--orange-soft);color:#c2410c}
+.danger{background:#fef2f2;color:var(--danger)}
+table{width:100%;border-collapse:collapse;margin-top:8px}
+th,td{padding:9px;border-bottom:1px solid #edf2f7;text-align:left;font-size:13px}
+th{font-size:12px;color:var(--muted);font-weight:800}
+.cell{width:100%;padding:7px 8px;border:1px solid #cbd5e1;border-radius:8px}
+.formula{
+  background:var(--navy);color:#e2e8f0;border-radius:12px;padding:13px;
+  font:13px/1.55 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  white-space:pre-wrap;overflow:auto;
+}
+.result{
+  background:#f8fbff;border:1px solid #dbeafe;border-left:4px solid var(--blue);
+  border-radius:11px;padding:13px;
+}
+.result.teal-border{border-left-color:var(--teal);background:#f7fffc;border-color:#cdeee7}
+.result.orange-border{border-left-color:var(--orange);background:#fffaf5;border-color:#fed7aa}
+.result strong.big{display:block;margin-top:4px;font-size:25px}
+.notice{
+  padding:12px 13px;border-radius:11px;background:#fffbeb;
+  border:1px solid #fde68a;color:#92400e;font-size:13px;
+}
+.success{
+  padding:12px 13px;border-radius:11px;background:var(--teal-soft);
+  border:1px solid #b7efd9;color:#11634f;font-size:13px;
+}
+.error{min-height:18px;color:var(--danger);font-size:12px;margin-top:6px}
+.chartbox{
+  border:1px solid #edf2f7;border-radius:13px;background:#fff;overflow:hidden;
+}
+canvas{display:block;width:100%;height:340px}
+.legend{display:flex;gap:15px;flex-wrap:wrap;margin-top:8px;color:var(--muted);font-size:12px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+.callout{
+  display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:start;
+  padding:14px;border-radius:14px;background:linear-gradient(135deg,#f8fbff,#f0fdfc);
+  border:1px solid #dbeafe;
+}
+.callout .icon{
+  width:36px;height:36px;border-radius:10px;display:grid;place-items:center;
+  background:#fff;border:1px solid var(--line);font-size:18px
+}
+.kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;margin-top:15px}
+.kpi{padding:16px;border:1px solid var(--line);border-radius:15px;background:#fff}
+.kpi h3{margin:0;font-size:13px;color:var(--muted)}.kpi p{margin:7px 0 0;font-size:25px;font-weight:850}
+.flow{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:15px}
+.flow-card{
+  position:relative;text-align:center;padding:17px 10px;border-radius:14px;
+  border:1px solid var(--line);background:#fff;font-weight:800;font-size:13px;
+}
+.flow-card:not(:last-child)::after{
+  content:"→";position:absolute;right:-15px;top:50%;transform:translateY(-50%);
+  color:#94a3b8;font-size:19px;font-weight:900;z-index:2
+}
+.small{font-size:12px;color:var(--muted)}
+.modal{
+  display:none;position:fixed;inset:0;background:rgba(2,6,23,.55);
+  backdrop-filter:blur(4px);z-index:20;padding:20px;overflow:auto;
+}
+.modal.open{display:flex;align-items:center;justify-content:center}
+.modal-card{
+  width:min(960px,100%);background:#fff;border-radius:18px;box-shadow:0 30px 80px rgba(2,6,23,.3);
+  padding:20px;max-height:90vh;overflow:auto;
+}
+.modal-head{display:flex;justify-content:space-between;gap:12px;align-items:center}
+.close{border:1px solid var(--line);background:#fff;border-radius:9px;padding:8px 10px;cursor:pointer}
+.backend-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:13px}
+.backend-block{border:1px solid var(--line);border-radius:12px;padding:13px}
+.backend-block h4{margin:0 0 7px;font-size:14px}
+footer{max-width:1240px;margin:auto;padding:0 22px 28px;text-align:center;color:#94a3b8;font-size:12px}
+.badge{
+  display:inline-flex;align-items:center;gap:6px;padding:5px 9px;border-radius:999px;
+  font-size:11px;font-weight:850;background:#f1f5f9;color:#475569
+}
+@media(max-width:1000px){.grid{grid-template-columns:1fr}.flow{grid-template-columns:1fr}.flow-card:not(:last-child)::after{content:"↓";right:50%;top:auto;bottom:-17px;transform:translateX(50%)}}
+@media(max-width:760px){.stats,.kpi-grid,.backend-grid,.controls{grid-template-columns:1fr 1fr}.stats{grid-template-columns:1fr 1fr}}
+@media(max-width:520px){.stats,.kpi-grid,.controls{grid-template-columns:1fr}h1{font-size:23px}}
 </style>
 </head>
 <body>
-<header><div class="brand"><div class="logo">∑</div><div><h1>Website Traffic Prediction</h1><p>MCE Mini Project · Mathematical Concepts &amp; Real-Life Applications</p></div></div></header>
-<nav id="tabs"><button class="active" data-section="dashboard">Dashboard</button><button data-section="traffic">Traffic Prediction</button><button data-section="response">Response Time</button><button data-section="compare">Model Comparison</button></nav>
-<div class="modal-backdrop" id="backendModal" role="dialog" aria-modal="true" aria-labelledby="backendTitle"><div class="modal"><div class="modal-header"><h2 id="backendTitle">Calculation Backend</h2><button class="close-btn" id="closeBackend">Close</button></div><div class="modal-body" id="backendBody"></div></div></div>
+<header>
+  <div class="brand">
+    <div class="logo">∑</div>
+    <div>
+      <h1>Website Response Time Distribution Analysis</h1>
+      <p class="header-sub">MCE Mini Project · Module VI — Probability · Normal & Poisson Distributions</p>
+    </div>
+  </div>
+</header>
+
+<nav class="nav" id="nav">
+  <button class="active" data-page="overview">Overview</button>
+  <button data-page="normal">Normal Distribution</button>
+  <button data-page="poisson">Poisson Distribution</button>
+  <button data-page="about">Methodology</button>
+</nav>
+
 <main>
-<section id="dashboard" class="section active"><div class="panel"><h2>Mathematical Analytics Dashboard</h2><p class="sub">Live calculations from your entered data.</p><div class="metrics" id="dashMetrics"></div><div class="notice">All displayed results are calculated dynamically from the current dataset. Nothing is hardcoded.</div></div></section>
+<section id="overview" class="page active">
+  <div class="panel">
+    <span class="badge">PROJECT FOCUS</span>
+    <h2 style="margin-top:9px">From server data to probability</h2>
+    <p class="sub">The model studies continuous response-time behaviour and request-count behaviour using the two probability distributions specified in the project objective.</p>
+    <div class="kpi-grid">
+      <div class="kpi"><h3>Response-time mean</h3><p id="ovMean">—</p></div>
+      <div class="kpi"><h3>Response-time SD</h3><p id="ovSd">—</p></div>
+      <div class="kpi"><h3>Poisson λ</h3><p id="ovLambda">—</p></div>
+    </div>
+    <div class="flow">
+      <div class="flow-card">Server Data</div>
+      <div class="flow-card">Normal / Poisson</div>
+      <div class="flow-card">Probability</div>
+      <div class="flow-card">Graph</div>
+      <div class="flow-card">Conclusion</div>
+    </div>
+  </div>
+  <div style="height:16px"></div>
+  <div class="grid">
+    <div class="panel">
+      <h2>What each distribution answers</h2>
+      <div class="callout" style="margin-top:13px">
+        <div class="icon">∿</div>
+        <div><strong>Normal Distribution</strong><div class="small" style="margin-top:4px">How are continuous server response times distributed around their mean?</div></div>
+      </div>
+      <div class="callout" style="margin-top:10px">
+        <div class="icon">▥</div>
+        <div><strong>Poisson Distribution</strong><div class="small" style="margin-top:4px">How likely is a particular number of requests in a fixed time interval?</div></div>
+      </div>
+    </div>
+    <div class="panel">
+      <h2>Live model behaviour</h2>
+      <p class="sub">Change the inputs in either module. Results and graphs are recalculated from the current values.</p>
+      <div class="success" style="margin-top:13px"><strong>No hardcoded prediction.</strong> Every displayed probability, statistic and plotted curve is generated from the entered data.</div>
+      <div class="notice" style="margin-top:10px"><strong>Interpretation matters.</strong> A probability describes the behaviour represented by the selected distribution; it does not guarantee a particular future event.</div>
+    </div>
+  </div>
+</section>
 
-<section id="traffic" class="section"><div class="grid">
-<div class="panel"><h2>Traffic Data Input</h2><p class="sub">X = time/day · Y = website visitors</p><div class="actions"><button class="btn primary" id="loadTraffic">Load Example</button><button class="btn ghost" id="addTraffic">+ Add Row</button><button class="btn danger" id="clearTraffic">Clear</button></div><table><thead><tr><th>Day (X)</th><th>Visitors (Y)</th><th></th></tr></thead><tbody id="trafficBody"></tbody></table><div class="error" id="trafficError"></div><div class="actions"><button class="btn primary" id="analyzeTraffic">Analyze Traffic</button></div></div>
-<div class="panel"><div class="panel-head"><div><h2>Traffic Analysis</h2><p class="sub">Covariance → curve fitting → future prediction</p></div><button class="backend-btn" id="trafficBackend">Calculation Backend</button></div><div class="metrics" id="trafficMetrics"></div><div class="two"><div><h3>Covariance</h3><div class="formula" id="trafficCov">Analyze the dataset to see the calculation.</div></div><div><h3>Prediction</h3><div class="controls"><div class="field"><label>Future Day<input id="futureDay" type="number" min="0" step="1" value="10"></label></div><div class="field"><label>Model<select id="trafficModel"><option value="linear">Linear Fit</option><option value="exponential">Exponential Fit</option></select></div></div><div class="actions"><button class="btn secondary" id="predictTraffic">Predict</button></div><div class="result"><small>Predicted visitors</small><strong class="big" id="trafficPrediction">—</strong><div class="sub" id="trafficEquation">—</div></div></div></div><div class="recommend" id="trafficSuggestion" style="margin-top:12px"><strong>Model suggestion</strong><span>Analyze the dataset to get a data-fit suggestion.</span></div><div class="notice" id="trafficPatternNote" style="margin-top:10px"><strong>About real website data:</strong> Website traffic may contain random fluctuations due to user behaviour, events, campaigns, or other factors. Curve fitting therefore models the overall trend rather than assuming every observation follows an exact mathematical pattern.</div><div class="chart-wrap"><p class="chart-title">Traffic Trend</p><canvas id="trafficChart" class="chart" width="900" height="320"></canvas><div class="legend"><span><i class="dot blue"></i>Actual data</span><span><i class="swatch red"></i>Selected fitted curve</span><span><i class="dot orange"></i>Prediction</span></div></div><h3>Conclusion</h3><div class="result" id="trafficConclusion">Analyze the dataset to generate a conclusion.</div></div>
-</div></section>
+<section id="normal" class="page">
+  <div class="grid">
+    <div class="panel">
+      <h2>Normal Distribution</h2>
+      <p class="sub">Response time is treated as a continuous variable.</p>
+      <div class="actions">
+        <button class="btn primary" id="normalLoad">Load Example</button>
+        <button class="btn ghost" id="normalAdd">+ Add Observation</button>
+        <button class="btn danger" id="normalClear">Clear</button>
+      </div>
+      <table>
+        <thead><tr><th>Request</th><th>Response Time (ms)</th><th></th></tr></thead>
+        <tbody id="normalBody"></tbody>
+      </table>
+      <div class="error" id="normalError"></div>
+      <div class="controls">
+        <div class="field"><label>Selected response time x (ms)<input id="normalX" type="number" step="any" placeholder="e.g. 160"></label></div>
+        <div class="field"><label>Standard deviation<select id="normalSdMode"><option value="population">Population SD</option><option value="sample">Sample SD</option></select></label></div>
+      </div>
+      <div class="actions">
+        <button class="btn primary" id="normalAnalyze">Analyze Distribution</button>
+        <button class="btn secondary" id="normalBackend">Calculation Backend</button>
+      </div>
+    </div>
 
-<section id="response" class="section"><div class="grid">
-<div class="panel"><h2>Response-Time Data</h2><p class="sub">X = traffic (visitors/min) · Y = response time (ms)</p><div class="actions"><button class="btn primary" id="loadResponse">Load Example</button><button class="btn ghost" id="addResponse">+ Add Row</button><button class="btn danger" id="clearResponse">Clear</button></div><table><thead><tr><th>Traffic (X)</th><th>Response (Y)</th><th></th></tr></thead><tbody id="responseBody"></tbody></table><div class="error" id="responseError"></div><div class="actions"><button class="btn primary" id="analyzeResponse">Analyze Response Time</button></div></div>
-<div class="panel"><div class="panel-head"><div><h2>Response-Time Analysis</h2><p class="sub">Covariance + linear fitting for the practical application.</p></div><button class="backend-btn" id="responseBackend">Calculation Backend</button></div><div class="metrics" id="responseMetrics"></div><div class="formula" id="responseFormula">Analyze the dataset to see the calculation.</div><div class="two" style="margin-top:12px"><div class="field"><label>Future Traffic<input id="futureTraffic" type="number" min="0" step="1" placeholder="e.g. 600"></label><div class="actions"><button class="btn secondary" id="predictResponse">Predict Response</button></div></div><div class="result"><small>Estimated response time</small><strong class="big" id="responsePrediction">—</strong></div></div><div class="chart-wrap"><p class="chart-title">Traffic vs Response Time</p><canvas id="responseChart" class="chart" width="900" height="320"></canvas><div class="legend"><span><i class="dot blue"></i>Actual data</span><span><i class="swatch red"></i>Fitted line</span><span><i class="dot orange"></i>Prediction</span></div></div><h3>Conclusion</h3><div class="result" id="responseConclusion">Analyze the dataset to generate a conclusion.</div></div>
-</div></section>
+    <div class="panel">
+      <h2>Normal Analysis</h2>
+      <p class="sub">Mean, standard deviation, Z-score, density and cumulative probability.</p>
+      <div class="stats" id="normalStats"></div>
+      <div class="formula" id="normalFormula">Analyze the dataset to see the calculations.</div>
+      <div class="controls">
+        <div class="field"><label>Lower bound (ms)<input id="normalLow" type="number" step="any" placeholder="optional"></label></div>
+        <div class="field"><label>Upper bound (ms)<input id="normalHigh" type="number" step="any" placeholder="optional"></label></div>
+      </div>
+      <div class="actions"><button class="btn secondary" id="normalInterval">Calculate Interval Probability</button></div>
+      <div class="result" id="normalResult"><small>Probability output</small><strong class="big" id="normalProb">—</strong><div class="small" id="normalProbText">Enter a selected response time or interval.</div></div>
+      <h3>Response-Time Distribution</h3>
+      <div class="chartbox"><canvas id="normalChart" width="1000" height="340"></canvas></div>
+      <div class="legend">
+        <span><i class="dot" style="background:#2563eb"></i>Observed response times</span>
+        <span><i class="dot" style="background:#0f766e"></i>Normal curve</span>
+        <span><i class="dot" style="background:#f97316"></i>Selected x</span>
+      </div>
+      <h3>Conclusion</h3>
+      <div class="result teal-border" id="normalConclusion">Analyze the response-time dataset to generate a conclusion.</div>
+    </div>
+  </div>
+</section>
 
-<section id="compare" class="section"><div class="panel"><div class="panel-head"><div><h2>Model Comparison</h2><p class="sub">Compare linear and exponential fits on the current traffic dataset.</p></div><button class="backend-btn" id="compareBackend">Decision Backend</button></div><div id="compareTable" style="margin-top:12px"></div><div class="recommend" id="compareSuggestion" style="margin-top:12px"><strong>Model suggestion</strong><span>Analyze traffic data first.</span></div><div class="notice" id="compareNote" style="margin-top:12px">The suggestion is based on historical-data fit using lower RMSE; it is a data-fit recommendation, not a guarantee of future accuracy.</div><div class="chart-wrap"><p class="chart-title">Historical Data vs Both Models</p><canvas id="compareChart" class="chart" width="900" height="360"></canvas><div class="legend"><span><i class="dot blue"></i>Actual data</span><span><i class="swatch red"></i>Linear fit</span><span><i class="swatch teal"></i>Exponential fit</span><span><i class="dot orange"></i>Predictions at selected future day</span></div></div><h3>How to Use the Suggestion</h3><div class="result">The app compares how closely each curve follows the historical observations. A lower RMSE means smaller average prediction error on the entered historical data. If both models have relatively large error compared with the average traffic, the app reports that the data may be too irregular for a clear Linear or Exponential fit. For presentation, compare the graph, equation, RMSE and the generated interpretation before choosing which model to demonstrate.</div></div></section>
-</main><footer>MCE Mini Project · Covariance · Linear Curve Fitting · Exponential Curve Fitting · Prediction</footer>
+<section id="poisson" class="page">
+  <div class="grid">
+    <div class="panel">
+      <h2>Poisson Distribution</h2>
+      <p class="sub">Request arrivals are treated as a discrete count over a fixed interval.</p>
+      <div class="controls">
+        <div class="field"><label>Average request rate λ<input id="poisLambda" type="number" step="any" min="0.000001" value="4"></label></div>
+        <div class="field"><label>Number of requests k<input id="poisK" type="number" step="1" min="0" value="6"></label></div>
+      </div>
+      <div class="controls">
+        <div class="field"><label>Time interval<input id="poisInterval" type="text" value="1 second"></label></div>
+        <div class="field"><label>Maximum k shown<input id="poisMaxK" type="number" min="6" step="1" value="12"></label></div>
+      </div>
+      <div class="actions">
+        <button class="btn teal" id="poisAnalyze">Calculate Probability</button>
+        <button class="btn secondary" id="poisBackend">Calculation Backend</button>
+      </div>
+      <div class="notice"><strong>Interpretation:</strong> λ is the average number of requests in the selected interval; k is a particular request count.</div>
+    </div>
+
+    <div class="panel">
+      <h2>Poisson Analysis</h2>
+      <p class="sub">Exact probability, cumulative probability and distribution shape.</p>
+      <div class="stats" id="poisStats"></div>
+      <div class="formula" id="poisFormula">Enter λ and k to calculate the Poisson probabilities.</div>
+      <div class="result orange-border" id="poisResult"><small>Exact probability</small><strong class="big" id="poisExact">—</strong><div class="small" id="poisText">P(X = k)</div></div>
+      <h3>Poisson Probability Distribution</h3>
+      <div class="chartbox"><canvas id="poissonChart" width="1000" height="340"></canvas></div>
+      <h3>Conclusion</h3>
+      <div class="result" id="poisConclusion">Calculate the distribution to generate a conclusion.</div>
+    </div>
+  </div>
+</section>
+
+<section id="about" class="page">
+  <div class="grid">
+    <div class="panel">
+      <h2>Methodology</h2>
+      <p class="sub">The model follows the mathematical logic of the project topic.</p>
+      <div class="callout" style="margin-top:13px"><div class="icon">1</div><div><strong>Collect server data</strong><div class="small">Response-time observations and request-count information.</div></div></div>
+      <div class="callout" style="margin-top:10px"><div class="icon">2</div><div><strong>Choose the distribution</strong><div class="small">Normal for continuous response time; Poisson for request counts in a fixed interval.</div></div></div>
+      <div class="callout" style="margin-top:10px"><div class="icon">3</div><div><strong>Calculate probability</strong><div class="small">Use the appropriate parameters and formulas.</div></div></div>
+      <div class="callout" style="margin-top:10px"><div class="icon">4</div><div><strong>Visualize and interpret</strong><div class="small">Plot the distribution and convert the numerical result into a server-performance interpretation.</div></div></div>
+    </div>
+    <div class="panel">
+      <h2>Formulas used</h2>
+      <h3>Normal Distribution</h3>
+      <div class="formula">f(x) = 1 / (σ√(2π)) · e^[-(x−μ)²/(2σ²)]
+
+Z = (x − μ) / σ
+
+P(X ≤ x) = Φ(Z)</div>
+      <h3>Poisson Distribution</h3>
+      <div class="formula">P(X = k) = e^(−λ) λ^k / k!
+
+λ = average requests per fixed interval
+k = observed/request-count value</div>
+      <div class="notice" style="margin-top:12px">The graphs are generated directly from the calculations performed in the browser.</div>
+    </div>
+  </div>
+</section>
+</main>
+
+<div class="modal" id="backendModal">
+  <div class="modal-card">
+    <div class="modal-head">
+      <div>
+        <h2 id="backendTitle">Calculation Backend</h2>
+        <p class="sub" id="backendSub">How the model reached the displayed result.</p>
+      </div>
+      <button class="close" id="backendClose">Close</button>
+    </div>
+    <div id="backendContent" style="margin-top:14px"></div>
+  </div>
+</div>
+
+<footer>Website Response Time Distribution Analysis · Module VI — Probability</footer>
+
 <script>
-(()=>{
-'use strict';
-const trafficExample=[[1,500],[2,540],[3,580],[4,630],[5,690]];
-const responseExample=[[100,120],[200,150],[300,190],[400,240],[500,300]];
-const state={traffic:trafficExample.map(r=>r.slice()),response:responseExample.map(r=>r.slice()),trafficAnalysis:null,responseAnalysis:null};
-const $=id=>document.getElementById(id);
-const mean=a=>a.length?a.reduce((s,v)=>s+v,0)/a.length:NaN;
-const covariance=rows=>{if(rows.length<2)return NaN;const mx=mean(rows.map(r=>r[0])),my=mean(rows.map(r=>r[1]));return rows.reduce((s,r)=>s+(r[0]-mx)*(r[1]-my),0)/rows.length;};
-const linearFit=rows=>{const n=rows.length;if(n<2)return null;const sx=rows.reduce((s,r)=>s+r[0],0),sy=rows.reduce((s,r)=>s+r[1],0),sxy=rows.reduce((s,r)=>s+r[0]*r[1],0),sx2=rows.reduce((s,r)=>s+r[0]*r[0],0),den=n*sx2-sx*sx;if(Math.abs(den)<1e-12)return null;const b=(n*sxy-sx*sy)/den,a=(sy-b*sx)/n;return{a,b};};
-const exponentialFit=rows=>{if(rows.length<2||rows.some(r=>r[1]<=0))return null;const fit=linearFit(rows.map(r=>[r[0],Math.log(r[1])]));return fit?{a:Math.exp(fit.a),b:Math.exp(fit.b)}:null;};
-const predict=(fit,type,x)=>type==='linear'?fit.a+fit.b*x:fit.a*Math.pow(fit.b,x);
-const rmse=(rows,fit,type)=>{if(!fit||!rows.length)return NaN;const mse=rows.reduce((s,r)=>{const p=predict(fit,type,r[0]);return s+(p-r[1])**2;},0)/rows.length;return Math.sqrt(mse);};
-const rel=v=>{const e=1e-10;return v>e?'Positive':v<-e?'Negative':'Near zero';};
-const fmt=v=>Number.isFinite(v)?Number(v.toFixed(2)).toLocaleString():'—';
-const fitQuality=(rmseValue,rows)=>{if(!Number.isFinite(rmseValue)||!rows?.length)return NaN;const avg=mean(rows.map(r=>r[1]));return avg>0?(rmseValue/avg)*100:NaN;};
-const rowsValid=rows=>rows.filter(r=>r.length===2&&r.every(Number.isFinite));
-function renderTable(bodyId,rows){const body=$(bodyId);body.innerHTML='';rows.forEach(r=>{const tr=document.createElement('tr');tr.innerHTML='<td><input class="cell" type="number" step="any" value="'+r[0]+'"></td><td><input class="cell" type="number" step="any" value="'+r[1]+'"></td><td><button type="button" class="btn danger remove">×</button></td>';tr.querySelector('.remove').addEventListener('click',()=>tr.remove());body.appendChild(tr);});}
-function readTable(bodyId){return rowsValid([...$(bodyId).querySelectorAll('tr')].map(tr=>[...tr.querySelectorAll('input')].map(i=>Number(i.value))));}
-function setMetrics(id,items){$(id).innerHTML=items.map(([l,v])=>'<div class="metric"><small>'+l+'</small><strong>'+v+'</strong></div>').join('');}
-function drawChart(canvasId,rows,models,predictions=[]){
- const c=$(canvasId),ctx=c.getContext('2d'),w=c.width,h=c.height,p={l:62,r:28,t:22,b:50};ctx.clearRect(0,0,w,h);ctx.fillStyle='#fff';ctx.fillRect(0,0,w,h);if(rows.length<2)return;
- let minX=Math.min(...rows.map(r=>r[0])),maxX=Math.max(...rows.map(r=>r[0])),minY=Math.min(...rows.map(r=>r[1])),maxY=Math.max(...rows.map(r=>r[1]));
- predictions.forEach(q=>{if(Number.isFinite(q.x)&&Number.isFinite(q.y)){minX=Math.min(minX,q.x);maxX=Math.max(maxX,q.x);minY=Math.min(minY,q.y);maxY=Math.max(maxY,q.y);}});
- const curveModels=Array.isArray(models)?models.filter(Boolean):[];
- curveModels.forEach(m=>{for(let i=0;i<=100;i++){const x=minX+(maxX-minX||1)*i/100,y=predict(m.fit,m.type,x);if(Number.isFinite(y)){minY=Math.min(minY,y);maxY=Math.max(maxY,y);}}});
- const xs=maxX-minX||1,ys=maxY-minY||1,sx=x=>p.l+(x-minX)/xs*(w-p.l-p.r),sy=y=>h-p.b-(y-minY)/ys*(h-p.t-p.b);
- ctx.strokeStyle='#e5e7eb';ctx.lineWidth=1;for(let i=0;i<6;i++){const yy=p.t+i*(h-p.t-p.b)/5,xx=p.l+i*(w-p.l-p.r)/5;ctx.beginPath();ctx.moveTo(p.l,yy);ctx.lineTo(w-p.r,yy);ctx.stroke();ctx.beginPath();ctx.moveTo(xx,p.t);ctx.lineTo(xx,h-p.b);ctx.stroke();}
- ctx.fillStyle='#667085';ctx.font='12px Segoe UI';ctx.fillText(fmt(minX),p.l,h-18);ctx.fillText(fmt(maxX),w-p.r-30,h-18);ctx.fillText(fmt(maxY),7,p.t+5);ctx.fillText(fmt(minY),7,h-p.b);
- ctx.strokeStyle='#94a3b8';ctx.lineWidth=1.5;ctx.beginPath();rows.forEach((r,i)=>{const px=sx(r[0]),py=sy(r[1]);i?ctx.lineTo(px,py):ctx.moveTo(px,py);});ctx.stroke();ctx.fillStyle='#2563eb';rows.forEach(r=>{ctx.beginPath();ctx.arc(sx(r[0]),sy(r[1]),4.5,0,Math.PI*2);ctx.fill();});
- curveModels.forEach(m=>{ctx.strokeStyle=m.color;ctx.lineWidth=2.2;ctx.beginPath();let started=false;for(let i=0;i<=140;i++){const x=minX+(maxX-minX||1)*i/140,y=predict(m.fit,m.type,x),px=sx(x),py=sy(y);if(!Number.isFinite(py))continue;if(!started){ctx.moveTo(px,py);started=true;}else ctx.lineTo(px,py);}ctx.stroke();});
- predictions.forEach(q=>{if(!Number.isFinite(q.x)||!Number.isFinite(q.y))return;const px=sx(q.x),py=sy(q.y);ctx.save();ctx.setLineDash([6,5]);ctx.strokeStyle='#111827';ctx.lineWidth=1.3;ctx.beginPath();ctx.moveTo(px,py);ctx.lineTo(px,h-p.b);ctx.stroke();ctx.restore();ctx.fillStyle='#f97316';ctx.beginPath();ctx.arc(px,py,7,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.stroke();ctx.fillStyle='#111827';ctx.font='700 12px Segoe UI';ctx.fillText(q.label||'Prediction',Math.min(px+9,w-105),Math.max(py-10,p.t+14));});
-}
-function covDetail(rows,labelX,labelY){
- const xs=rows.map(r=>r[0]),ys=rows.map(r=>r[1]),mx=mean(xs),my=mean(ys);
- const terms=rows.map((r,i)=>{const dx=r[0]-mx,dy=r[1]-my;return `<tr><td>${i+1}</td><td>${fmt(r[0])}</td><td>${fmt(r[1])}</td><td>${fmt(dx)}</td><td>${fmt(dy)}</td><td>${fmt(dx*dy)}</td></tr>`}).join('');
- const sum=rows.reduce((a,r)=>a+(r[0]-mx)*(r[1]-my),0),cov=sum/rows.length;
- return `<h3>1. Covariance calculation</h3><p><b>${labelX}</b> = X and <b>${labelY}</b> = Y</p><div class="step"><code>X̄ = (${xs.map(fmt).join(' + ')}) / ${rows.length} = ${fmt(mx)}
-Ȳ = (${ys.map(fmt).join(' + ')}) / ${rows.length} = ${fmt(my)}</code></div><div style="overflow:auto"><table><thead><tr><th>#</th><th>X</th><th>Y</th><th>X − X̄</th><th>Y − Ȳ</th><th>Product</th></tr></thead><tbody>${terms}</tbody></table></div><div class="step"><code>Σ[(X − X̄)(Y − Ȳ)] = ${fmt(sum)}
-Cov(X,Y) = ${fmt(sum)} / ${rows.length} = ${fmt(cov)}</code></div><p><b>Decision:</b> ${rel(cov)} covariance means the two variables ${cov>0?'tend to increase together':cov<0?'tend to move in opposite directions':'show little linear joint movement'} in this dataset.</p>`;
-}
-function fitDetail(rows,fit,type,title){
- if(!fit) return `<h3>${title}</h3><p>Model unavailable for the current data.</p>`;
- if(type==='linear'){
-  const n=rows.length,sx=rows.reduce((a,r)=>a+r[0],0),sy=rows.reduce((a,r)=>a+r[1],0),sxy=rows.reduce((a,r)=>a+r[0]*r[1],0),sx2=rows.reduce((a,r)=>a+r[0]*r[0],0),b=fit.b,a=fit.a;
-  return `<h3>${title}</h3><p>Linear model: <b>y = a + bx</b></p><div class="step"><code>n = ${n}
-Σx = ${fmt(sx)}
-Σy = ${fmt(sy)}
-Σxy = ${fmt(sxy)}
-Σx² = ${fmt(sx2)}</code></div><div class="step"><code>b = [nΣxy − (Σx)(Σy)] / [nΣx² − (Σx)²]
-  = [${n}(${fmt(sxy)}) − (${fmt(sx)})(${fmt(sy)})] / [${n}(${fmt(sx2)}) − (${fmt(sx)})²]
-  = ${fmt(b)}
+(() => {
+  "use strict";
 
-a = [Σy − bΣx] / n
-  = [${fmt(sy)} − (${fmt(b)})(${fmt(sx)})] / ${n}
-  = ${fmt(a)}</code></div><div class="step"><code>Fitted equation: y = ${fmt(a)} + ${fmt(b)}x</code></div>`;
- }
- const logRows=rows.map(r=>[r[0],Math.log(r[1])]),n=rows.length,sx=logRows.reduce((a,r)=>a+r[0],0),sy=logRows.reduce((a,r)=>a+r[1],0),sxy=logRows.reduce((a,r)=>a+r[0]*r[1],0),sx2=logRows.reduce((a,r)=>a+r[0]*r[0],0);
- return `<h3>${title}</h3><p>Exponential model: <b>y = abˣ</b></p><div class="step"><code>Take logarithms:
-log y = log a + x log b
+  const $ = id => document.getElementById(id);
+  const normalExample = [120,130,140,145,150,155,160,170,180];
+  let normalState = {data: normalExample.slice(), mean: NaN, sd: NaN, x: NaN, z: NaN, cdf: NaN, pdf: NaN};
+  let poisState = {lambda: 4, k: 6, exact: NaN, cdf: NaN, interval: "1 second"};
 
-The transformed (x, log y) values are fitted with the same least-squares method.</code></div><div class="step"><code>Computed parameters:
-a = ${fmt(fit.a)}
-b = ${fmt(fit.b)}
+  const fmt = (v, d=2) => Number.isFinite(v) ? Number(v.toFixed(d)).toLocaleString(undefined,{maximumFractionDigits:d}) : "—";
+  const erf = x => {
+    const sign = x < 0 ? -1 : 1;
+    x = Math.abs(x);
+    const a1=0.254829592,a2=-0.284496736,a3=1.421413741,a4=-1.453152027,a5=1.061405429,p=0.3275911;
+    const t=1/(1+p*x);
+    const y=1-(((((a5*t+a4)*t)+a3)*t+a2)*t+a1)*t*Math.exp(-x*x);
+    return sign*y;
+  };
+  const normalCdf = z => 0.5*(1+erf(z/Math.sqrt(2)));
+  const normalPdf = (x,mu,sd) => (1/(sd*Math.sqrt(2*Math.PI)))*Math.exp(-0.5*((x-mu)/sd)**2);
+  const factorial = n => {
+    if(n<0 || !Number.isInteger(n)) return NaN;
+    let r=1;
+    for(let i=2;i<=n;i++) r*=i;
+    return r;
+  };
+  const poissonP = (k,lambda) => {
+    if(k<0 || !Number.isInteger(k) || lambda<0) return NaN;
+    if(k===0) return Math.exp(-lambda);
+    let p = Math.exp(-lambda);
+    for(let i=1;i<=k;i++) p *= lambda/i;
+    return p;
+  };
+  const sum = a => a.reduce((s,v)=>s+v,0);
+  const mean = a => a.length ? sum(a)/a.length : NaN;
+  const sd = (a, sample=false) => {
+    if(a.length < (sample?2:1)) return NaN;
+    const m=mean(a), denom=sample ? a.length-1 : a.length;
+    return Math.sqrt(sum(a.map(v=>(v-m)**2))/denom);
+  };
 
-Fitted equation: y = ${fmt(fit.a)} × ${fmt(fit.b)}ˣ</code></div><p class="detail-note">Exponential fitting requires positive Y values because log(Y) must be defined.</p>`;
-}
-function rmseDetail(rows,fit,type,title){
- if(!fit) return `<h3>${title}</h3><p>RMSE unavailable.</p>`;
- const items=rows.map((r,i)=>{const predv=predict(fit,type,r[0]),err=r[1]-predv,sq=err*err;return `<tr><td>${i+1}</td><td>${fmt(r[0])}</td><td>${fmt(r[1])}</td><td>${fmt(predv)}</td><td>${fmt(err)}</td><td>${fmt(sq)}</td></tr>`}).join('');
- const val=rmse(rows,fit,type);return `<h3>${title}</h3><p>RMSE compares the fitted model's predictions with the actual historical observations.</p><div style="overflow:auto"><table><thead><tr><th>#</th><th>X</th><th>Actual Y</th><th>Predicted Y</th><th>Error</th><th>Error²</th></tr></thead><tbody>${items}</tbody></table></div><div class="step"><code>RMSE = √[Σ(Y − Ŷ)² / n]
-   = √[Σ(error²) / ${rows.length}]
-   = ${fmt(val)}</code></div>`;
-}
-function openBackend(title,html){$('backendTitle').textContent=title;$('backendBody').innerHTML=html;$('backendModal').classList.add('open');}
-function closeBackend(){$('backendModal').classList.remove('open');}
-function getSuggestion(a){if(!a?.lin)return{title:'Not enough data',body:'Enter at least two points with varying X values.'};const lr=rmse(a.rows,a.lin,'linear'),er=a.exp?rmse(a.rows,a.exp,'exponential'):NaN,lp=fitQuality(lr,a.rows),ep=fitQuality(er,a.rows);if(!Number.isFinite(er))return{title:'Linear Fit Suggested',body:'Exponential fitting is unavailable for this dataset because it requires positive Y values. Linear fit is the available model.'};const best=lr<=er?'Linear Fit':'Exponential Fit',bestRmse=lr<=er?lr:er,otherRmse=lr<=er?er:lr,bestPct=lr<=er?lp:ep,otherPct=lr<=er?ep:lp;if(Number.isFinite(lp)&&Number.isFinite(ep)&&lp>15&&ep>15)return{title:'Neither model fits the data strongly',body:'Both models have relatively large historical error compared with the average traffic ('+fmt(lp)+'% Linear vs '+fmt(ep)+'% Exponential). The data may contain substantial irregular fluctuations, so treat both extrapolations cautiously.'};if(Number.isFinite(lp)&&Number.isFinite(ep)&&Math.abs(lp-ep)<1)return{title:'No clear model distinction',body:'Linear and Exponential fits are very close on historical error ('+fmt(lp)+'% vs '+fmt(ep)+'% of average traffic). The historical data does not clearly distinguish one functional form.'};return{title:best+' suggested by historical fit',body:'This suggestion is based on lower RMSE on the entered historical data. '+best+' has RMSE '+fmt(bestRmse)+' ('+fmt(bestPct)+'% of average traffic) versus '+(best==='Linear Fit'?'Exponential':'Linear')+' '+fmt(otherRmse)+' ('+fmt(otherPct)+'%). This indicates a closer fit to the current sample, not a guarantee of future accuracy.'};}
-function setTrafficSuggestion(){const s=getSuggestion(state.trafficAnalysis);$('trafficSuggestion').innerHTML='<strong>'+s.title+'</strong><span>'+s.body+'</span>';}
-function analyzeTraffic(){const rows=readTable('trafficBody');if(rows.length<2){$('trafficError').textContent='Enter at least two valid data points.';return false;}$('trafficError').textContent='';state.traffic=rows;const cov=covariance(rows),lin=linearFit(rows),exp=exponentialFit(rows);state.trafficAnalysis={rows,cov,lin,exp};setMetrics('trafficMetrics',[['Covariance',fmt(cov)],['Relationship',rel(cov)],['Linear slope b',lin?fmt(lin.b):'—'],['Data points',rows.length]]);$('trafficCov').textContent='X̄ = '+fmt(mean(rows.map(r=>r[0])))+'\nȲ = '+fmt(mean(rows.map(r=>r[1])))+'\nCov(X,Y) = '+fmt(cov)+'\nInterpretation: '+rel(cov)+' covariance';$('trafficConclusion').innerHTML='<strong>'+rel(cov)+' relationship.</strong> The entered dataset shows how website traffic changes with time. Covariance describes the direction of joint movement; curve fitting is used for future estimation.';setTrafficSuggestion();updateTrafficPrediction();updateCompare();updateDashboard();return true;}
-function updateTrafficPrediction(){if(!state.trafficAnalysis)return;const raw=$('futureDay').value.trim(),x=raw===''?NaN:Number(raw),type=$('trafficModel').value,fit=type==='linear'?state.trafficAnalysis.lin:state.trafficAnalysis.exp;if(!Number.isFinite(x)||!fit){$('trafficPrediction').textContent='—';$('trafficEquation').textContent=fit?'Enter a future day to predict.':'Insufficient data for this model.';drawTraffic([]);updateCompare();return;}const y=predict(fit,type,x);if(!Number.isFinite(y)){$('trafficPrediction').textContent='—';$('trafficEquation').textContent='Prediction is outside a usable numeric range.';drawTraffic([]);updateCompare();return;}$('trafficPrediction').textContent=fmt(y)+' visitors';$('trafficEquation').textContent=type==='linear'?'y = '+fmt(fit.a)+' + '+fmt(fit.b)+'x':'y = '+fmt(fit.a)+' × '+fmt(fit.b)+'ˣ';drawTraffic([{x,y,label:'Prediction'}]);updateCompare();}
-function drawTraffic(predictions){if(!state.trafficAnalysis)return;const type=$('trafficModel').value,fit=type==='linear'?state.trafficAnalysis.lin:state.trafficAnalysis.exp;drawChart('trafficChart',state.traffic,[fit?{fit,type,color:'#ef4444'}:null],predictions||[]);}
-function analyzeResponse(){const rows=readTable('responseBody');if(rows.length<2){$('responseError').textContent='Enter at least two valid data points.';return false;}$('responseError').textContent='';state.response=rows;const cov=covariance(rows),lin=linearFit(rows);state.responseAnalysis={rows,cov,lin};setMetrics('responseMetrics',[['Covariance',fmt(cov)],['Relationship',rel(cov)],['Slope b',lin?fmt(lin.b):'—'],['Data points',rows.length]]);$('responseFormula').textContent='X̄ = '+fmt(mean(rows.map(r=>r[0])))+'\nȲ = '+fmt(mean(rows.map(r=>r[1])))+'\nCov(X,Y) = '+fmt(cov)+'\nLinear model: '+(lin?'y = '+fmt(lin.a)+' + '+fmt(lin.b)+'x':'Insufficient variation');$('responseConclusion').innerHTML='<strong>'+rel(cov)+' relationship.</strong> In this sample, traffic and response time tend to '+(cov>0?'increase together.':cov<0?'move in opposite directions.':'show little linear joint movement.');const raw=$('futureTraffic').value.trim();if(raw!=='')predictResponse();else drawChart('responseChart',rows,lin?[{fit:lin,type:'linear',color:'#ef4444'}]:[],[]);updateDashboard();return true;}
-function predictResponse(){if(!state.responseAnalysis&&!analyzeResponse())return;const raw=$('futureTraffic').value.trim(),x=raw===''?NaN:Number(raw),fit=state.responseAnalysis?.lin;if(!fit||!Number.isFinite(x)){$('responsePrediction').textContent='—';drawChart('responseChart',state.response,fit?[{fit,type:'linear',color:'#ef4444'}]:[],[]);return;}const y=fit.a+fit.b*x;if(!Number.isFinite(y)){$('responsePrediction').textContent='—';drawChart('responseChart',state.response,[{fit,type:'linear',color:'#ef4444'}],[]);return;}$('responsePrediction').textContent=fmt(y)+' ms';$('responseConclusion').innerHTML='<strong>'+rel(state.responseAnalysis.cov)+' relationship.</strong> In this sample, traffic and response time tend to '+(state.responseAnalysis.cov>0?'increase together.':state.responseAnalysis.cov<0?'move in opposite directions.':'show little linear joint movement.')+' <span class="muted">Predicted point: ('+fmt(x)+', '+fmt(y)+' ms).</span>';drawChart('responseChart',state.response,[{fit,type:'linear',color:'#ef4444'}],[{x,y,label:'Prediction'}]);}
-function updateCompare(){const a=state.trafficAnalysis;if(!a){$('compareTable').innerHTML='';$('compareSuggestion').innerHTML='<strong>Model suggestion</strong><span>Analyze traffic data first.</span>';return;}const raw=$('futureDay').value.trim(),x=raw===''?NaN:Number(raw),lr=a.lin?rmse(a.rows,a.lin,'linear'):NaN,er=a.exp?rmse(a.rows,a.exp,'exponential'):NaN,lp=fitQuality(lr,a.rows),ep=fitQuality(er,a.rows);let html='<table><thead><tr><th>Model</th><th>Fitted equation</th><th>RMSE</th><th>Error vs avg. traffic</th><th>At Day '+(Number.isFinite(x)?fmt(x):'—')+'</th></tr></thead><tbody>';if(a.lin){const lpred=Number.isFinite(x)?predict(a.lin,'linear',x):NaN;html+='<tr><td>Linear</td><td>y = '+fmt(a.lin.a)+' + '+fmt(a.lin.b)+'x</td><td>'+fmt(lr)+'</td><td>'+fmt(lp)+'%</td><td>'+fmt(lpred)+'</td></tr>';}if(a.exp){const epred=Number.isFinite(x)?predict(a.exp,'exponential',x):NaN;html+='<tr><td>Exponential</td><td>y = '+fmt(a.exp.a)+' × '+fmt(a.exp.b)+'ˣ</td><td>'+fmt(er)+'</td><td>'+fmt(ep)+'%</td><td>'+fmt(epred)+'</td></tr>';}html+='</tbody></table>';$('compareTable').innerHTML=html;const s=getSuggestion(a);$('compareSuggestion').innerHTML='<strong>'+s.title+'</strong><span>'+s.body+'</span>';drawComparisonGraph();}
-function drawComparisonGraph(){const a=state.trafficAnalysis;if(!a)return;const raw=$('futureDay').value.trim(),x=raw===''?NaN:Number(raw),models=[];if(a.lin)models.push({fit:a.lin,type:'linear',color:'#ef4444'});if(a.exp)models.push({fit:a.exp,type:'exponential',color:'#0f766e'});const predictions=[];if(Number.isFinite(x)){if(a.lin){const y=predict(a.lin,'linear',x);if(Number.isFinite(y))predictions.push({x,y,label:'Linear prediction'});}if(a.exp){const y=predict(a.exp,'exponential',x);if(Number.isFinite(y))predictions.push({x,y,label:'Exponential prediction'});}}drawChart('compareChart',a.rows,models,predictions);}
-function updateDashboard(){setMetrics('dashMetrics',[['Traffic data points',state.traffic.length],['Traffic relationship',state.trafficAnalysis?rel(state.trafficAnalysis.cov):'Not analyzed'],['Suggested model',state.trafficAnalysis?getSuggestion(state.trafficAnalysis).title:'—'],['Response relationship',state.responseAnalysis?rel(state.responseAnalysis.cov):'Not analyzed']]);}
-function loadTraffic(){state.traffic=trafficExample.map(r=>r.slice());renderTable('trafficBody',state.traffic);analyzeTraffic();}
-function loadResponse(){state.response=responseExample.map(r=>r.slice());$('futureTraffic').value='';renderTable('responseBody',state.response);analyzeResponse();$('responsePrediction').textContent='—';}
-$('tabs').addEventListener('click',e=>{const b=e.target.closest('button[data-section]');if(!b)return;document.querySelectorAll('#tabs button').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));$(b.dataset.section).classList.add('active');if(b.dataset.section==='compare')drawComparisonGraph();});
-$('loadTraffic').addEventListener('click',loadTraffic);$('addTraffic').addEventListener('click',()=>addBlank('trafficBody'));$('clearTraffic').addEventListener('click',()=>{$('trafficBody').innerHTML='';state.trafficAnalysis=null;$('trafficMetrics').innerHTML='';$('trafficCov').textContent='Analyze the dataset to see the calculation.';$('trafficPrediction').textContent='—';$('trafficEquation').textContent='—';$('trafficSuggestion').innerHTML='<strong>Model suggestion</strong><span>Analyze the dataset to get a data-fit suggestion.</span>';$('trafficConclusion').textContent='Analyze the dataset to generate a conclusion.';drawChart('trafficChart',[],[],[]);updateDashboard();updateCompare();});$('analyzeTraffic').addEventListener('click',()=>{if(analyzeTraffic())updateTrafficPrediction();});$('predictTraffic').addEventListener('click',predictTraffic);$('futureDay').addEventListener('input',predictTraffic);$('trafficModel').addEventListener('change',predictTraffic);
-$('loadResponse').addEventListener('click',loadResponse);$('addResponse').addEventListener('click',()=>addBlank('responseBody'));$('clearResponse').addEventListener('click',()=>{$('responseBody').innerHTML='';state.responseAnalysis=null;$('futureTraffic').value='';$('responseMetrics').innerHTML='';$('responseFormula').textContent='Analyze the dataset to see the calculation.';$('responsePrediction').textContent='—';$('responseConclusion').textContent='Analyze the dataset to generate a conclusion.';drawChart('responseChart',[],[],[]);updateDashboard();});$('analyzeResponse').addEventListener('click',()=>{if(analyzeResponse())predictResponse();});$('predictResponse').addEventListener('click',predictResponse);$('futureTraffic').addEventListener('input',predictResponse);
-$('trafficBackend').addEventListener('click',()=>{
- const a=state.trafficAnalysis;
- if(!a){openBackend('Traffic Calculation Backend','<p>Analyze the traffic dataset first.</p>');return;}
- const x=$('futureDay').value.trim(),future=Number(x),type=$('trafficModel').value,fit=type==='linear'?a.lin:a.exp,pred=Number.isFinite(future)&&fit?predict(fit,type,future):NaN;
- let html=covDetail(a.rows,'Time / Day','Website Visitors');
- html+='<div class="detail-grid">'+fitDetail(a.rows,a.lin,'linear','2. Linear curve fitting')+fitDetail(a.rows,a.exp,'exponential','3. Exponential curve fitting')+'</div>';
- html+='<h3>4. Prediction</h3><div class="step"><code>Selected model = '+(type==='linear'?'Linear':'Exponential')+'\nFuture day = '+(Number.isFinite(future)?fmt(future):'not entered')+'\nPrediction = '+(Number.isFinite(pred)?fmt(pred)+' visitors':'—')+'</code></div>';
- html+='<p><b>How the app decides the suggested model:</b> it compares the historical RMSE of both available fits. Lower RMSE means smaller average error on the entered historical observations. If both errors are high relative to the average traffic, or nearly indistinguishable, the app reports that instead of forcing a model choice.</p>';
- openBackend('Traffic Calculation Backend',html);
-});
-$('responseBackend').addEventListener('click',()=>{
- const a=state.responseAnalysis;
- if(!a){openBackend('Response-Time Calculation Backend','<p>Analyze the response-time dataset first.</p>');return;}
- const raw=$('futureTraffic').value.trim(),x=raw===''?NaN:Number(raw),y=a.lin&&Number.isFinite(x)?predict(a.lin,'linear',x):NaN;
- let html=covDetail(a.rows,'Traffic','Response Time');
- html+=fitDetail(a.rows,a.lin,'linear','2. Linear curve fitting for response time');
- html+='<h3>3. Response-time prediction</h3><div class="step"><code>y = a + bx\nFuture traffic = '+(Number.isFinite(x)?fmt(x):'not entered')+'\nEstimated response = '+(Number.isFinite(y)?fmt(y)+' ms':'—')+'</code></div>';
- html+='<p><b>Interpretation:</b> covariance gives the direction of joint movement. The fitted line is then used to estimate response time for a new traffic value.</p>';
- openBackend('Response-Time Calculation Backend',html);
-});
-$('compareBackend').addEventListener('click',()=>{
- const a=state.trafficAnalysis;
- if(!a){openBackend('Model Decision Backend','<p>Analyze the traffic dataset first.</p>');return;}
- const lr=a.lin?rmse(a.rows,a.lin,'linear'):NaN,er=a.exp?rmse(a.rows,a.exp,'exponential'):NaN;
- let html='<p><b>Decision pipeline:</b> Fit both models → calculate historical RMSE → compare error → check for irregular/noisy data → produce suggestion.</p>';
- html+='<div class="detail-grid">'+rmseDetail(a.rows,a.lin,'linear','Linear RMSE')+rmseDetail(a.rows,a.exp,'exponential','Exponential RMSE')+'</div>';
- html+='<div class="step"><code>Linear RMSE = '+fmt(lr)+'\nExponential RMSE = '+fmt(er)+'</code></div>';
- const s=getSuggestion(a); html+='<p><b>Current app decision:</b> '+s.title+'.</p><p>'+s.body+'</p>';
- html+='<p class="detail-note">RMSE is evaluated on historical observations used for fitting. It is a measure of historical fit, not a guarantee that future extrapolation will be accurate.</p>';
- openBackend('Model Decision Backend',html);
-});
-$('closeBackend').addEventListener('click',closeBackend);
-$('backendModal').addEventListener('click',e=>{if(e.target.id==='backendModal')closeBackend();});
-document.addEventListener('keydown',e=>{if(e.key==='Escape')closeBackend();});
-function addBlank(bodyId){const body=$(bodyId),tr=document.createElement('tr'),i=body.children.length+1;tr.innerHTML='<td><input class="cell" type="number" step="any" value="'+i+'"></td><td><input class="cell" type="number" step="any" value=""></td><td><button type="button" class="btn danger remove">×</button></td>';tr.querySelector('.remove').addEventListener('click',()=>tr.remove());body.appendChild(tr);}
-function predictTraffic(){if(!state.trafficAnalysis&&!analyzeTraffic())return;updateTrafficPrediction();}
-renderTable('trafficBody',state.traffic);renderTable('responseBody',state.response);loadTraffic();loadResponse();updateDashboard();
+  function showPage(id){
+    document.querySelectorAll(".nav button").forEach(b=>b.classList.toggle("active",b.dataset.page===id));
+    document.querySelectorAll(".page").forEach(p=>p.classList.toggle("active",p.id===id));
+    window.scrollTo({top:0,behavior:"smooth"});
+  }
+  $("nav").addEventListener("click",e=>{
+    const b=e.target.closest("button[data-page]");
+    if(b) showPage(b.dataset.page);
+  });
+
+  function renderNormalTable(){
+    const body=$("normalBody");
+    body.innerHTML="";
+    normalState.data.forEach((v,i)=>{
+      const tr=document.createElement("tr");
+      tr.innerHTML='<td>'+(i+1)+'</td><td><input class="cell" type="number" step="any" value="'+v+'"></td><td><button class="btn danger remove" type="button">×</button></td>';
+      tr.querySelector(".remove").onclick=()=>{tr.remove();};
+      body.appendChild(tr);
+    });
+  }
+  function readNormalTable(){
+    return [...$("normalBody").querySelectorAll("tr")]
+      .map(tr=>Number(tr.querySelector("input").value))
+      .filter(Number.isFinite);
+  }
+  function setStats(id,items){
+    $(id).innerHTML=items.map(([label,value])=>'<div class="stat"><small>'+label+'</small><strong>'+value+'</strong></div>').join("");
+  }
+
+  function drawNormal(){
+    const canvas=$("normalChart"),ctx=canvas.getContext("2d"),w=canvas.width,h=canvas.height;
+    ctx.clearRect(0,0,w,h);
+    ctx.fillStyle="#fff";ctx.fillRect(0,0,w,h);
+    const data=normalState.data;
+    if(data.length<2 || !Number.isFinite(normalState.sd) || normalState.sd<=0) return;
+
+    const mu=normalState.mean, s=normalState.sd;
+    let minX=Math.min(...data, mu-4*s), maxX=Math.max(...data, mu+4*s);
+    if(Number.isFinite(normalState.x)){minX=Math.min(minX,normalState.x);maxX=Math.max(maxX,normalState.x);}
+    let minY=0,maxY=normalPdf(mu,mu,s)*1.15;
+    const pad={l:58,r:24,t:24,b:48};
+    const sx=x=>pad.l+(x-minX)/(maxX-minX||1)*(w-pad.l-pad.r);
+    const sy=y=>h-pad.b-(y-minY)/(maxY-minY||1)*(h-pad.t-pad.b);
+
+    ctx.strokeStyle="#e5e7eb";ctx.lineWidth=1;
+    for(let i=0;i<6;i++){
+      const yy=pad.t+i*(h-pad.t-pad.b)/5;ctx.beginPath();ctx.moveTo(pad.l,yy);ctx.lineTo(w-pad.r,yy);ctx.stroke();
+    }
+
+    ctx.fillStyle="#64748b";ctx.font="12px Segoe UI";
+    ctx.fillText(fmt(minX),pad.l,h-17);ctx.fillText(fmt(maxX),w-pad.r-27,h-17);
+    ctx.fillText("density",7,pad.t+5);
+
+    // histogram bins
+    const bins=Math.max(5,Math.min(10,Math.ceil(Math.sqrt(data.length))));
+    const bw=(maxX-minX)/bins;
+    const freq=new Array(bins).fill(0);
+    data.forEach(v=>{
+      let idx=Math.floor((v-minX)/bw);
+      if(idx===bins)idx=bins-1;
+      if(idx>=0)freq[idx]++;
+    });
+    const histScale=(maxY*0.55)/(Math.max(...freq)||1);
+    ctx.fillStyle="#dbeafe";
+    freq.forEach((f,i)=>{
+      const x=minX+i*bw,y=h-pad.b-f*histScale;
+      const width=(w-pad.l-pad.r)/bins-2;
+      ctx.fillRect(sx(minX+i*bw)+1,y,Math.max(2,width),f*histScale);
+    });
+
+    // normal curve
+    ctx.strokeStyle="#0f766e";ctx.lineWidth=3;ctx.beginPath();
+    for(let i=0;i<=180;i++){
+      const x=minX+(maxX-minX)*i/180,y=normalPdf(x,mu,s),px=sx(x),py=sy(y);
+      if(i===0)ctx.moveTo(px,py);else ctx.lineTo(px,py);
+    }
+    ctx.stroke();
+
+    // mean marker
+    const mx=sx(mu);
+    ctx.save();ctx.setLineDash([5,5]);ctx.strokeStyle="#64748b";ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.moveTo(mx,pad.t);ctx.lineTo(mx,h-pad.b);ctx.stroke();ctx.restore();
+
+    // selected x
+    if(Number.isFinite(normalState.x)){
+      const px=sx(normalState.x),py=sy(normalPdf(normalState.x,mu,s));
+      ctx.save();ctx.setLineDash([6,5]);ctx.strokeStyle="#f97316";ctx.lineWidth=1.5;
+      ctx.beginPath();ctx.moveTo(px,py);ctx.lineTo(px,h-pad.b);ctx.stroke();ctx.restore();
+      ctx.fillStyle="#f97316";ctx.beginPath();ctx.arc(px,py,7,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle="#13233a";ctx.font="700 12px Segoe UI";
+      ctx.fillText("x = "+fmt(normalState.x),Math.min(px+8,w-105),Math.max(py-10,pad.t+12));
+    }
+  }
+
+  function analyzeNormal(){
+    const data=readNormalTable();
+    if(data.length<2){$("normalError").textContent="Enter at least two response-time observations.";return false;}
+    if(data.some(v=>v<0)){$("normalError").textContent="Response times cannot be negative.";return false;}
+    $("normalError").textContent="";
+    normalState.data=data;
+    const sample=$("normalSdMode").value==="sample";
+    const mu=mean(data), s=sd(data,sample);
+    normalState.mean=mu;normalState.sd=s;
+
+    const rawX=$("normalX").value.trim();
+    const x=rawX===""?NaN:Number(rawX);
+    normalState.x=x;
+    let z=NaN,cdf=NaN,pdf=NaN;
+    if(Number.isFinite(x) && s>0){z=(x-mu)/s;cdf=normalCdf(z);pdf=normalPdf(x,mu,s);}
+    normalState.z=z;normalState.cdf=cdf;normalState.pdf=pdf;
+
+    setStats("normalStats",[
+      ["Observations",data.length],
+      ["Mean μ",fmt(mu)+" ms"],
+      ["Std. deviation σ",fmt(s)+" ms"],
+      ["Z-score",fmt(z)]
+    ]);
+
+    $("normalFormula").textContent=
+      "μ = Σx / n = "+fmt(mu)+" ms\\n"+
+      "σ = "+(sample?"√[Σ(x−μ)²/(n−1)]":"√[Σ(x−μ)²/n]")+" = "+fmt(s)+" ms\\n"+
+      (Number.isFinite(x) && s>0
+        ? "Z = (x−μ)/σ = ("+fmt(x)+"−"+fmt(mu)+")/"+fmt(s)+" = "+fmt(z)+"\\n"+
+          "P(X ≤ x) = Φ(Z) = "+(fmt(cdf*100,2))+"%\\n"+
+          "f(x) = "+fmt(pdf,6)
+        : "Enter a selected response time x to calculate Z-score and probability.");
+
+    if(Number.isFinite(x) && s>0){
+      $("normalProb").textContent=fmt(cdf*100,2)+"%";
+      $("normalProbText").textContent="Estimated probability of a response time at or below "+fmt(x)+" ms under the fitted normal model.";
+      let interpretation;
+      if(Math.abs(z)<1) interpretation="The selected response time is within one standard deviation of the mean.";
+      else if(Math.abs(z)<2) interpretation="The selected response time is moderately away from the mean.";
+      else interpretation="The selected response time is relatively far from the mean.";
+      $("normalConclusion").innerHTML=
+        "<strong>Mean response time: "+fmt(mu)+" ms.</strong> "+
+        "The selected value of "+fmt(x)+" ms has Z = "+fmt(z)+". "+
+        interpretation+" Under the fitted normal model, about "+fmt(cdf*100,2)+"% of observations are expected to be at or below this value.";
+    }else{
+      $("normalProb").textContent="—";
+      $("normalProbText").textContent="Enter a selected response time x.";
+      $("normalConclusion").textContent="Analyze the response-time dataset and select a response time to generate an interpretation.";
+    }
+    drawNormal();
+    return true;
+  }
+
+  function normalInterval(){
+    if(!analyzeNormal()) return;
+    const loRaw=$("normalLow").value.trim(),hiRaw=$("normalHigh").value.trim();
+    const lo=loRaw===""?NaN:Number(loRaw),hi=hiRaw===""?NaN:Number(hiRaw);
+    if(!Number.isFinite(lo)||!Number.isFinite(hi)||hi<lo||normalState.sd<=0){
+      $("normalProb").textContent="—";
+      $("normalProbText").textContent="Enter valid lower and upper bounds with upper ≥ lower.";
+      return;
+    }
+    const zl=(lo-normalState.mean)/normalState.sd, zh=(hi-normalState.mean)/normalState.sd;
+    const p=Math.max(0,Math.min(1,normalCdf(zh)-normalCdf(zl)));
+    $("normalProb").textContent=fmt(p*100,2)+"%";
+    $("normalProbText").textContent="Estimated probability that response time lies between "+fmt(lo)+" ms and "+fmt(hi)+" ms.";
+  }
+
+  function normalBackend(){
+    const ok=analyzeNormal();
+    $("backendTitle").textContent="Normal Distribution — Calculation Backend";
+    $("backendSub").textContent="Step-by-step mathematics used by the model.";
+    const d=normalState.data,mu=normalState.mean,s=normalState.sd,x=normalState.x;
+    const variance=sum(d.map(v=>(v-mu)**2))/(d.length-($("normalSdMode").value==="sample"?1:0));
+    const rows=d.map((v,i)=>'<tr><td>'+(i+1)+'</td><td>'+fmt(v,4)+'</td><td>'+fmt(v-mu,4)+'</td><td>'+fmt((v-mu)**2,4)+'</td></tr>').join("");
+    const extra=(Number.isFinite(x)&&s>0)
+      ? '<div class="backend-block"><h4>Selected response time</h4><div class="formula">x = '+fmt(x)+' ms\\nZ = (x−μ)/σ\\n  = ('+fmt(x)+'−'+fmt(mu)+') / '+fmt(s)+'\\n  = '+fmt(normalState.z)+'\\n\\nP(X ≤ x) = Φ(Z)\\n             ≈ '+fmt(normalState.cdf*100,2)+'%\\n\\nf(x) ≈ '+fmt(normalState.pdf,6)+'</div></div>'
+      : '<div class="backend-block"><h4>Selected value</h4><p class="small">No valid x was entered, so Z-score and probability are not computed yet.</p></div>';
+
+    $("backendContent").innerHTML=
+      '<div class="backend-grid">'+
+      '<div class="backend-block"><h4>1. Input data</h4><p class="small">'+d.length+' response-time observations were read from the table.</p></div>'+
+      '<div class="backend-block"><h4>2. Parameters</h4><div class="formula">μ = Σx / n = '+fmt(mu)+' ms\\nσ² = '+fmt(variance,6)+'\\nσ = '+fmt(s)+' ms</div></div>'+
+      '</div>'+
+      '<div class="backend-block" style="margin-top:12px"><h4>3. Deviation table</h4><table><thead><tr><th>#</th><th>x</th><th>x−μ</th><th>(x−μ)²</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
+      '<div class="backend-grid" style="margin-top:12px">'+
+      '<div class="backend-block"><h4>4. Normal PDF</h4><div class="formula">f(x) = 1/(σ√(2π)) · e^[−(x−μ)²/(2σ²)]</div></div>'+
+      extra+
+      '</div>'+
+      '<div class="success" style="margin-top:12px"><strong>Decision logic:</strong> the model uses the entered response-time observations to estimate μ and σ, then uses the normal distribution to describe the probability associated with a selected value or interval.</div>';
+    $("backendModal").classList.add("open");
+  }
+
+  function renderPoisson(){
+    const lambda=Number($("poisLambda").value),k=Number($("poisK").value);
+    if(!Number.isFinite(lambda)||lambda<=0||!Number.isInteger(k)||k<0) return;
+    const exact=poissonP(k,lambda);
+    let cdf=0;
+    for(let i=0;i<=k;i++) cdf+=poissonP(i,lambda);
+    poisState={lambda,k,exact,cdf,interval:$("poisInterval").value};
+    setStats("poisStats",[
+      ["λ",fmt(lambda,3)],
+      ["k",String(k)],
+      ["P(X = k)",fmt(exact*100,2)+"%"],
+      ["P(X ≤ k)",fmt(cdf*100,2)+"%"]
+    ]);
+    $("poisFormula").textContent=
+      "P(X = k) = e^(−λ) λ^k / k!\\n"+
+      "P(X = "+k+") = e^(−"+fmt(lambda,3)+") × "+fmt(lambda,3)+"^"+k+" / "+k+"!\\n"+
+      "P(X = "+k+") ≈ "+fmt(exact,6)+"\\n"+
+      "P(X = "+k+") ≈ "+fmt(exact*100,2)+"%\\n"+
+      "P(X ≤ "+k+") ≈ "+fmt(cdf*100,2)+"%";
+    $("poisExact").textContent=fmt(exact*100,2)+"%";
+    $("poisText").textContent="Probability of exactly "+k+" requests in "+($("poisInterval").value||"the selected interval")+".";
+    const position=k<lambda?"below":"above";
+    $("poisConclusion").innerHTML=
+      "<strong>Average arrival rate λ = "+fmt(lambda,3)+" requests per "+($("poisInterval").value||"interval")+".</strong> "+
+      "The probability of exactly "+k+" requests is "+fmt(exact*100,2)+"%. "+
+      "The selected count is "+position+" the average rate. This helps quantify the likelihood of that request load.";
+    drawPoisson();
+  }
+
+  function drawPoisson(){
+    const canvas=$("poissonChart"),ctx=canvas.getContext("2d"),w=canvas.width,h=canvas.height;
+    ctx.clearRect(0,0,w,h);ctx.fillStyle="#fff";ctx.fillRect(0,0,w,h);
+    const lambda=poisState.lambda,maxK=Math.max(Number($("poisMaxK").value)||12,poisState.k+2,Math.ceil(lambda+5*Math.sqrt(lambda))+1);
+    const vals=[];let maxP=0;
+    for(let k=0;k<=maxK;k++){const p=poissonP(k,lambda);vals.push(p);maxP=Math.max(maxP,p);}
+    const pad={l:58,r:20,t:25,b:52},bw=(w-pad.l-pad.r)/(maxK+1);
+    ctx.strokeStyle="#e5e7eb";ctx.lineWidth=1;
+    for(let i=0;i<6;i++){const yy=pad.t+i*(h-pad.t-pad.b)/5;ctx.beginPath();ctx.moveTo(pad.l,yy);ctx.lineTo(w-pad.r,yy);ctx.stroke();}
+    ctx.fillStyle="#64748b";ctx.font="12px Segoe UI";ctx.fillText("probability",7,pad.t+5);
+    ctx.fillText("0",pad.l,h-20);ctx.fillText(String(maxK),w-pad.r-12,h-20);
+    vals.forEach((p,k)=>{
+      const x=pad.l+k*bw+bw*.15;
+      const bh=(p/maxP)*(h-pad.t-pad.b-18);
+      ctx.fillStyle=(k===poisState.k)?"#f97316":"#0f766e";
+      ctx.fillRect(x,h-pad.b-bh,bw*.7,bh);
+      ctx.fillStyle="#475569";ctx.font="11px Segoe UI";
+      if(k%Math.max(1,Math.floor(maxK/10))===0 || k===poisState.k) ctx.fillText(String(k),x+bw*.28,h-pad.b+16);
+    });
+    ctx.fillStyle="#13233a";ctx.font="700 12px Segoe UI";
+    ctx.fillText("λ = "+fmt(lambda,3),pad.l+8,pad.t+16);
+  }
+
+  function poissonBackend(){
+    renderPoisson();
+    const lambda=poisState.lambda,k=poisState.k,exact=poisState.exact,cdf=poisState.cdf;
+    const fact=factorial(k);
+    $("backendTitle").textContent="Poisson Distribution — Calculation Backend";
+    $("backendSub").textContent="Step-by-step mathematics used by the model.";
+    $("backendContent").innerHTML=
+      '<div class="backend-grid">'+
+      '<div class="backend-block"><h4>1. Inputs</h4><div class="formula">λ = '+fmt(lambda,6)+' requests / interval\\nk = '+k+' requests\\nInterval = '+($("poisInterval").value||"selected interval")+'</div></div>'+
+      '<div class="backend-block"><h4>2. Formula</h4><div class="formula">P(X = k) = e^(−λ) λ^k / k!</div></div>'+
+      '</div>'+
+      '<div class="backend-grid" style="margin-top:12px">'+
+      '<div class="backend-block"><h4>3. Substitute values</h4><div class="formula">P(X = '+k+') = e^(−'+fmt(lambda,6)+') × '+fmt(lambda,6)+'^'+k+' / '+k+'!\\n'+k+'! = '+fact+'\\nP(X = '+k+') ≈ '+fmt(exact,8)+'</div></div>'+
+      '<div class="backend-block"><h4>4. Cumulative probability</h4><div class="formula">P(X ≤ '+k+') = Σ P(X = i), i = 0…'+k+'\\n≈ '+fmt(cdf,8)+'</div></div>'+
+      '</div>'+
+      '<div class="success" style="margin-top:12px"><strong>Decision logic:</strong> λ defines the average request rate. The model evaluates the probability of each request count k, then visualizes the distribution so the selected request load can be interpreted in context.</div>';
+    $("backendModal").classList.add("open");
+  }
+
+  $("backendClose").onclick=()=>$("backendModal").classList.remove("open");
+  $("backendModal").addEventListener("click",e=>{if(e.target===$("backendModal"))$("backendModal").classList.remove("open");});
+
+  $("normalLoad").onclick=()=>{normalState.data=normalExample.slice();renderNormalTable();$("normalX").value=160;analyzeNormal();};
+  $("normalAdd").onclick=()=>{const tr=document.createElement("tr"),idx=$("normalBody").children.length+1;tr.innerHTML='<td>'+idx+'</td><td><input class="cell" type="number" step="any" placeholder="value"></td><td><button class="btn danger remove" type="button">×</button></td>';tr.querySelector(".remove").onclick=()=>tr.remove();$("normalBody").appendChild(tr);};
+  $("normalClear").onclick=()=>{$("normalBody").innerHTML="";normalState={data:[],mean:NaN,sd:NaN,x:NaN,z:NaN,cdf:NaN,pdf:NaN};$("normalStats").innerHTML="";$("normalFormula").textContent="Enter response-time observations.";$("normalProb").textContent="—";$("normalProbText").textContent="Enter a selected response time or interval.";$("normalConclusion").textContent="Analyze the response-time dataset to generate a conclusion.";drawNormal();};
+  $("normalAnalyze").onclick=analyzeNormal;
+  $("normalInterval").onclick=normalInterval;
+  $("normalBackend").onclick=normalBackend;
+  $("normalX").addEventListener("input",()=>{if($("normalBody").children.length>=2)analyzeNormal();});
+  $("normalSdMode").addEventListener("change",()=>{if($("normalBody").children.length>=2)analyzeNormal();});
+  $("normalLow").addEventListener("input",()=>{});
+  $("normalHigh").addEventListener("input",()=>{});
+
+  $("poisAnalyze").onclick=renderPoisson;
+  $("poisBackend").onclick=poissonBackend;
+  ["poisLambda","poisK","poisInterval","poisMaxK"].forEach(id=>{
+    $(id).addEventListener("input",()=>{if($("poisLambda").value!=="" && $("poisK").value!=="")renderPoisson();});
+  });
+
+  renderNormalTable();
+  $("normalLoad").click();
+  renderPoisson();
+  $("normalX").value=160;
+  analyzeNormal();
+  renderPoisson();
+  $("ovMean").textContent=fmt(normalState.mean,2)+" ms";
+  $("ovSd").textContent=fmt(normalState.sd,2)+" ms";
+  $("ovLambda").textContent=fmt(poisState.lambda,2);
 })();
 </script>
 </body>
